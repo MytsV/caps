@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Generic
-from lib.bac import BaseAbstractClass
-from lib.usecase_models import (
+from lib.core.bac import BaseAbstractClass
+from lib.core.usecase_models import (
     TBaseErrorResponseModel,
     TBaseRequestModel,
     TBaseResponseModel,

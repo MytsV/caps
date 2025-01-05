@@ -7,10 +7,10 @@ This module defines the BasePresenter class.
 
 from abc import abstractmethod
 from typing import Generic
-from lib.primary_ports import BaseOutputPort
-from lib.response import TPresenterResponse
-from lib.usecase_models import TBaseErrorResponseModel, TBaseResponseModel
-from lib.view_model import TBaseViewModel
+from lib.core.primary_ports import BaseOutputPort
+from lib.core.response import TPresenterResponse
+from lib.core.usecase_models import TBaseErrorResponseModel, TBaseResponseModel
+from lib.core.view_model import TBaseViewModel
 
 
 class BasePresenter(

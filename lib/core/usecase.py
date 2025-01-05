@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Generic
-from lib.dto import TBaseDTO
-from lib.primary_ports import BaseInputPort, BaseOutputPort
-from lib.usecase_models import (
+from lib.core.dto import TBaseDTO
+from lib.core.primary_ports import BaseInputPort, BaseOutputPort
+from lib.core.usecase_models import (
     BaseErrorResponseModel,
     TBaseAuthenticatedRequestModel,
     TBaseErrorResponseModel,

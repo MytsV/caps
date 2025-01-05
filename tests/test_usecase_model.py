@@ -1,6 +1,6 @@
 from typing import Any
-from lib.primary_ports import BaseInputPort, BaseOutputPort
-from lib.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
+from lib.core.primary_ports import BaseInputPort, BaseOutputPort
+from lib.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
 
 
 class ResponseModel(BaseResponseModel):
