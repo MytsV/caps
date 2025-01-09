@@ -15,6 +15,11 @@ pydantic = "^2.10.4"
 [tool.poetry.group.fastapi.dependencies]
 fastapi = "^0.115.4"
 
+[tool.poetry.group.sqla.dependencies]
+SQLAlchemy = "^2.0.36"
+SQLAlchemy-Utils = "^0.41.2"
+alembic = "^1.14.0"
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 pytest-env = "^1.1.5"

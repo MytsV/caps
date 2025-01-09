@@ -44,7 +44,7 @@ class Presenter(BaseOutputPort[ResponseModel, ErrorResponseModel, ViewModel]):
             errorMessage=errorModel.error,
             errorName=errorModel.error,
             errorType="Error",
-        )   
+        )
 
 
 def test_usecase_models() -> None:
@@ -66,7 +66,7 @@ def test_usecase_models() -> None:
 
 
 def test_usecase_models_error_case() -> None:
-    
+
     usecase: BaseInputPort[RequestModel, ResponseModel, ErrorResponseModel] = UseCase()
     requestModel = RequestModel(name="Test", type="Test")
     response = usecase.execute(requestModel=requestModel)
