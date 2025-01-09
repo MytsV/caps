@@ -6,45 +6,26 @@ from lib.core.usecase_models import (
     TBaseRequestModel,
     TBaseResponseModel,
 )
+from lib.core.view_model import TBaseViewModel
 
 
-class BaseInputPort(BaseAbstractClass, Generic[TBaseRequestModel]):
-    """
-    Abstract base class for input ports.
-
-    @param requestModel: The request model to use.
-    @type requestModel: TBaseRequestModel
-    """
-
+class BaseInputPort(BaseAbstractClass, Generic[TBaseRequestModel, TBaseResponseModel, TBaseErrorResponseModel]):
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def execute(self, requestModel: TBaseRequestModel) -> None:
-        pass
+    def execute(self, requestModel: TBaseRequestModel) -> TBaseResponseModel | TBaseErrorResponseModel:
+        raise NotImplementedError("You must implement the execute method in your use case")
 
 
-class BaseOutputPort(BaseAbstractClass, Generic[TBaseResponseModel, TBaseErrorResponseModel]):
-    """
-    Abstract base class for output ports.
-
-    @type-arg TBaseResponseModel: The response model to use.
-    @type-arg TBaseErrorResponseModel: The error response model to use.
-    @method presentSuccess: Present the success response.
-    @param responseModel: The response model to use.
-    @type responseModel: TBaseResponseModel
-    @method presentError: Present the error response.
-    @param errorModel: The error model to use.
-    @type errorModel: TBaseErrorResponseModel
-    """
-
+class BaseOutputPort(BaseAbstractClass, Generic[TBaseResponseModel, TBaseErrorResponseModel, TBaseViewModel]):
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def presentSuccess(self, responseModel: TBaseResponseModel) -> None:
+    def present_success(self, responseModel: TBaseResponseModel) -> TBaseViewModel:
         raise NotImplementedError
 
     @abstractmethod
-    def presentError(self, errorModel: TBaseErrorResponseModel) -> None:
+    def present_error(self, errorModel: TBaseErrorResponseModel) -> TBaseViewModel:
         raise NotImplementedError

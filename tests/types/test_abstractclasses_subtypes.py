@@ -8,11 +8,12 @@ Have in mind that not all tests use the --strict flag
 
 from abc import abstractmethod
 import sys
-from typing import Generic, NewType, TypeVar
+from typing import Generic, TypeVar
 from lib.core.bac import BaseAbstractClass
 from lib.core.primary_ports import BaseInputPort, BaseOutputPort
 from lib.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
 
+from lib.core.view_model import BaseViewModel
 from tests.types.mypytest_prototype import debug_mypy, object_mypy_error_report
 
 
@@ -32,6 +33,10 @@ class ErrorResponseModel(BaseErrorResponseModel):
 class RequestModel(BaseRequestModel):
     name: str
     type: str
+
+
+class ViewModel(BaseViewModel):
+    pass
 
 
 def test_subtypes() -> None:
@@ -193,7 +198,13 @@ def test_correctly_typed_type_and_subtype() -> None:
     # This is the way to tell mypy to accept a type and any subtypes
     BoundedBaseRequestModel = TypeVar("BoundedBaseRequestModel", bound=BaseRequestModel)
 
-    class BaseInputPort_Generic(BaseAbstractClass, Generic[BoundedBaseRequestModel]):
+    BoundedBaseResponseModel = TypeVar("BoundedBaseResponseModel", bound=BaseResponseModel)
+
+    BoundedBaseErrorResponseModel = TypeVar("BoundedBaseErrorResponseModel", bound=BaseErrorResponseModel)
+
+    class BaseInputPort_Generic(
+        BaseAbstractClass, Generic[BoundedBaseRequestModel, BoundedBaseResponseModel, BoundedBaseErrorResponseModel]
+    ):
         def __init__(self) -> None:
             super().__init__()
 
@@ -201,10 +212,10 @@ def test_correctly_typed_type_and_subtype() -> None:
         def execute(self, requestModel: BoundedBaseRequestModel) -> None:
             pass
 
-    class UseCase_Passing_Type_To_Generic(BaseInputPort_Generic[RequestModel]):
+    class UseCase_Passing_Type_To_Generic(BaseInputPort_Generic[RequestModel, ResponseModel, ErrorResponseModel]):
         # NOTE: we NEED to pass the type to the Generic, otherwise mypy --strict will complain
         # that a type is not passed to the Generic
-        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel]) -> None:
+        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel, ViewModel]) -> None:
             super().__init__()
             self.presenter = presenter
 
@@ -214,20 +225,20 @@ def test_correctly_typed_type_and_subtype() -> None:
     class UseCase_bad_1(BaseInputPort_Generic):
         # NOTE: watch out for this case!
         # if mypy doesn't have the --strict flag, it will not catch this, see below
-        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel]) -> None:
+        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel, ViewModel]) -> None:
             super().__init__()
             self.presenter = presenter
 
-        def execute(self, requestModel: int) -> None:
+        def execute(self, requestModel: int) -> ResponseModel | ErrorResponseModel:
             pass
 
-    class UseCase_bad_2(BaseInputPort_Generic[int]):
+    class UseCase_bad_2(BaseInputPort_Generic[int, int, int]):
         # If we pass the incorrect type to the Generic, mypy always complains, strict or not
-        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel]) -> None:
+        def __init__(self, presenter: BaseOutputPort[ResponseModel, ErrorResponseModel, ViewModel]) -> None:
             super().__init__()
             self.presenter = presenter
 
-        def execute(self, requestModel: int) -> None:
+        def execute(self, requestModel: int) -> ResponseModel | ErrorResponseModel:
             pass
 
     mypy_test_error_report_1 = object_mypy_error_report(BaseInputPort_Generic, __file__, strict=True)
@@ -245,10 +256,10 @@ def test_correctly_typed_type_and_subtype() -> None:
     mypy_test_error_report_3_strict = object_mypy_error_report(UseCase_bad_1, __file__, strict=True)
     # We need to use the strict flag, otherwise mypy doesn't catch this
     # It's a 'type-arg' missing error, that is only caught with the strict flag
-    assert len(mypy_test_error_report_3_strict) == 1
+    assert len(mypy_test_error_report_3_strict) == 3
 
     mypy_test_error_report_4 = object_mypy_error_report(UseCase_bad_2, __file__)
     mypy_test_error_report_4_strict = object_mypy_error_report(UseCase_bad_2, __file__, strict=True)
     # mypy correctly captures this case, strict or not
-    assert len(mypy_test_error_report_4) == 1
-    assert len(mypy_test_error_report_4_strict) == 1
+    assert len(mypy_test_error_report_4) == 5
+    assert len(mypy_test_error_report_4_strict) == 5

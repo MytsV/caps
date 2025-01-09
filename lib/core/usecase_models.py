@@ -12,6 +12,12 @@ class BaseAuthenticatedRequestModel(BaseRequestModel):
 
 
 class BaseResponseModel(BaseModel):
+    """
+    Base response model for all use cases.
+
+    @param status: The status of the response. Equals True.
+    """
+
     status: Literal[True] = True
 
 
@@ -22,6 +28,13 @@ class BaseErrorResponseModel(BaseModel):
 
 
 TBaseRequestModel = TypeVar("TBaseRequestModel", bound=BaseRequestModel)
+
 TBaseAuthenticatedRequestModel = TypeVar("TBaseAuthenticatedRequestModel", bound=BaseAuthenticatedRequestModel)
+
+TBaseRequestModelOrBaseAuthenticatedRequestModel = TypeVar(
+    "TBaseRequestModelOrBaseAuthenticatedRequestModel", bound=BaseRequestModel | BaseAuthenticatedRequestModel
+)
+
 TBaseResponseModel = TypeVar("TBaseResponseModel", bound=BaseResponseModel)
+
 TBaseErrorResponseModel = TypeVar("TBaseErrorResponseModel", bound=BaseErrorResponseModel)
