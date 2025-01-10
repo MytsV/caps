@@ -1,4 +1,5 @@
 import json
+from typing import TypeVar
 from pydantic import BaseModel
 
 
@@ -24,3 +25,6 @@ class BaseSDKModel(BaseModel):
         json_s = self.to_json()
         json_data = json.loads(json_s)
         print(json.dumps(json_data, indent=2))
+
+
+TBaseSDKModel = TypeVar("TBaseSDKModel", bound=BaseSDKModel)
