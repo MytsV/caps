@@ -40,7 +40,14 @@ class DeleteRequest(BaseCrudRequest):
     id: TID
 
 
-TDeleteRequest = TypeVar("TDeleteRequest", bound=UpdateRequest)
+TDeleteRequest = TypeVar("TDeleteRequest", bound=DeleteRequest)
+
+
+class GetRequest(BaseCrudRequest):
+    id: TID
+
+
+TGetRequest = TypeVar("TGetRequest", bound=GetRequest)
 
 
 class CreatedData(BaseModel, Generic[TEntitySDKModel]):
@@ -83,7 +90,7 @@ class BaseCrudRepositoryOutputPort(BaseAbstractClass, Generic[TSession, TEntityS
         raise NotImplementedError("You must implement the create method in your repository")
 
     @abstractmethod
-    def get(self, session: TSession, request: TBaseCrudRequest) -> TBaseDTO[TEntitySDKModel]:
+    def get(self, session: TSession, request: TGetRequest) -> TBaseDTO[TEntitySDKModel]:
         raise NotImplementedError(
             "You must implement the get method in your repository. Should 'read' a single record."
         )

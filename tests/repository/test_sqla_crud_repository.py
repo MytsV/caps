@@ -1,9 +1,10 @@
 from datetime import datetime
 from unittest.mock import patch
 
+from lib.core.dto import SuccessDTO
 from lib.core.error import BaseError
 from lib.core.models import BaseSDKModel, EntitySDKModel
-from lib.core.secondary_ports import CreatedDTO, CreateRequest
+from lib.core.secondary_ports import CreatedDTO, CreateRequest, GetRequest
 from lib.infrastructure.repository.sqla.database import Base
 from lib.infrastructure.repository.sqla.models import SoftModelBase
 from sqlalchemy import Column, Integer, String
@@ -66,18 +67,13 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
         assert isinstance(result, BaseError)
         assert "Invalid field" in result.message
 
-    # def test_get_existing(self, repository):
-    #     # First create an item
-    #     create_request = CreateRequest(
-    #         data=TestSDKModel(name="Test Item")
-    #     )
-    #     created = repository.create(create_request)
-    #
-    #     # Then try to get it
-    #     get_request = BaseCrudRequest()
-    #     get_request.id = created.data.data.id
-    #
-    #     result = repository.get(get_request)
-    #
-    #     assert isinstance(result, SuccessDTO)
-    #     assert result.data.name == "Test Item"
+    def test_get_existing(self, repository):
+        create_request = CreateRequest(data=TestSDKModel(name="Test Item"))
+        created = repository.create(create_request)
+
+        get_request = GetRequest(id=created.data.data.id)
+
+        result = repository.get(get_request)
+
+        assert isinstance(result, SuccessDTO)
+        assert result.data.name == "Test Item"

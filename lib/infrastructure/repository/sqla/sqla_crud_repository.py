@@ -12,7 +12,7 @@ from lib.core.secondary_ports import (
     CreatedData,
     TUpdateRequest,
     UpdatedDTO,
-    TDeleteRequest,
+    TDeleteRequest, TGetRequest,
 )
 from lib.infrastructure.repository.sqla.models import SoftModelBase
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
@@ -23,7 +23,6 @@ from sqlalchemy.orm import Session
 class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKModel]):
     def __init__(self, sqla_model: type[SoftModelBase]) -> None:
         self._sqla_model = sqla_model
-        pass
 
     @sqla_session_context()
     def session(self, session: Session) -> Session:
@@ -49,13 +48,12 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
         )
 
     @sqla_session_context()
-    def get(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[TEntitySDKModel]:
-        pass
-        # instance = session.query(self._sqla_model).filter_by(id=request.id).first()
-        # if not instance:
-        #     return BaseError(message=f"{self._sqla_model.__name__} not found")
-        #
-        # return SuccessDTO[TEntitySDKModel](data=instance.to_sdk_model())
+    def get(self, session: Session, request: TGetRequest) -> TBaseDTO[TEntitySDKModel]:
+        instance = session.query(self._sqla_model).filter_by(id=request.id).first()
+        if not instance:
+            return BaseError(message=f"{self._sqla_model.__name__} not found")
+
+        return SuccessDTO[TEntitySDKModel](data=instance.to_sdk_model())
 
     def list(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[List[TEntitySDKModel]]:
         raise NotImplementedError(
