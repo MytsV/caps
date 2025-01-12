@@ -1,8 +1,9 @@
+import uuid
 from datetime import datetime
-from typing import TypeVar, List
+from typing import List
 
 from lib.core.error import BaseError
-from lib.core.models import TBaseSDKModel, TEntitySDKModel
+from lib.core.models import TEntitySDKModel
 from lib.core.dto import TBaseDTO, SuccessDTO
 from lib.core.secondary_ports import (
     BaseCrudRepositoryOutputPort,
@@ -12,7 +13,11 @@ from lib.core.secondary_ports import (
     CreatedData,
     TUpdateRequest,
     UpdatedDTO,
-    TDeleteRequest, TGetRequest,
+    TDeleteRequest,
+    TGetRequest,
+    UpdatedData,
+    DeletedDTO,
+    DeletedData,
 )
 from lib.infrastructure.repository.sqla.models import SoftModelBase
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
@@ -40,7 +45,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                 name="Error creating a new entity",
                 errorType="ErrorCreatingNewEntity",
                 context=e,
-                digest="ErrorWhileCreatingNewEntity",
+                digest=str(uuid.uuid4()),
             )
 
         return CreatedDTO[TEntitySDKModel](
@@ -51,17 +56,92 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
     def get(self, session: Session, request: TGetRequest) -> TBaseDTO[TEntitySDKModel]:
         instance = session.query(self._sqla_model).filter_by(id=request.id).first()
         if not instance:
-            return BaseError(message=f"{self._sqla_model.__name__} not found")
+            return BaseError(
+                message=f"{self._sqla_model.__name__} not found",
+                name="Entity not found",
+                errorType="EntityNotFound",
+                context={},
+                digest=str(uuid.uuid4()),
+            )
 
         return SuccessDTO[TEntitySDKModel](data=instance.to_sdk_model())
 
+    @sqla_session_context()
     def list(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[List[TEntitySDKModel]]:
-        raise NotImplementedError(
-            "You must implement the list method in your repository. Should 'read' multiple records."
-        )
+        try:
+            instances = session.query(self._sqla_model).all()
+            return SuccessDTO[List[TEntitySDKModel]](data=[instance.to_sdk_model() for instance in instances])
+        except Exception as e:
+            return BaseError(
+                message=f"Error listing entities: {str(e)}",
+                name="Error listing entities",
+                errorType="ErrorListingEntities",
+                context=e,
+                digest=str(uuid.uuid4()),
+            )
 
+    @sqla_session_context()
     def update(self, session: Session, request: TUpdateRequest) -> UpdatedDTO[TEntitySDKModel] | BaseError:
-        raise NotImplementedError("You must implement the update method in your repository")
+        try:
+            instance = session.query(self._sqla_model).filter_by(id=request.id).first()
+            if not instance:
+                return BaseError(
+                    message=f"{self._sqla_model.__name__} not found",
+                    name="Entity not found",
+                    errorType="EntityNotFound",
+                    context={},
+                    digest=str(uuid.uuid4()),
+                )
 
-    def delete(self, session: Session, request: TDeleteRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
-        raise NotImplementedError("You must implement the delete method in your repository")
+            for key, value in request.data.dict().items():
+                if hasattr(instance, key):
+                    setattr(instance, key, value)
+                elif value is not None:
+                    return BaseError(
+                        message=f"Invalid field: {key}",
+                        name="Invalid field",
+                        errorType="InvalidField",
+                        context={},
+                        digest=str(uuid.uuid4()),
+                    )
+
+            session.commit()
+            return UpdatedDTO[TEntitySDKModel](
+                data=UpdatedData[TEntitySDKModel](data=instance.to_sdk_model(), updated_at=datetime.now())
+            )
+        except Exception as e:
+            return BaseError(
+                message=f"Error updating entity: {str(e)}",
+                name="Error updating entity",
+                errorType="ErrorUpdatingEntity",
+                context={},
+                digest=str(uuid.uuid4()),
+            )
+
+    @sqla_session_context()
+    def delete(self, session: Session, request: TDeleteRequest) -> DeletedDTO[TEntitySDKModel] | BaseError:
+        try:
+            instance = session.query(self._sqla_model).filter_by(id=request.id).first()
+            if not instance:
+                return BaseError(
+                    message=f"{self._sqla_model.__name__} not found",
+                    name="Entity not found",
+                    errorType="EntityNotFound",
+                    context={},
+                    digest=str(uuid.uuid4()),
+                )
+
+            session.delete(instance)
+            session.commit()
+
+            return DeletedDTO[TEntitySDKModel](
+                data=DeletedData[TEntitySDKModel](id=request.id, deleted_at=datetime.now())
+            )
+        except Exception as e:
+            return BaseError(
+                message=f"Error deleting entity: {str(e)}",
+                name="Error deleting entity",
+                errorType="ErrorDeletingEntity",
+                context=e,
+                digest="ErrorWhileDeletingEntity",
+            )
