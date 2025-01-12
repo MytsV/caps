@@ -1,4 +1,6 @@
+from abc import abstractmethod
 from datetime import datetime
+from importlib.metadata.diagnose import inspect
 from typing import Dict, Any, TypeVar
 
 from sqlalchemy import (
@@ -10,6 +12,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import mapped_column, object_mapper, MappedColumn
 from sqlalchemy.orm.session import Session
 
+from lib.core.models import TEntitySDKModel
 from lib.infrastructure.repository.sqla.database import Base
 
 
@@ -19,6 +22,20 @@ class ModelBase(object):
     """
 
     __table_initialized__ = False
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        instance = cls()
+        for key, value in data.items():
+            if hasattr(instance, key):
+                setattr(instance, key, value)
+            elif value is not None:
+                raise ValueError(f"Invalid field: {key}")
+        return instance
+
+    @abstractmethod
+    def to_sdk_model(self) -> TEntitySDKModel:
+        raise NotImplementedError("You must implement the to_sdk_model method in your model")
 
     @declared_attr  # type: ignore
     def __table_args__(cls: Base) -> tuple:  # type: ignore # pylint: disable=no-self-argument
