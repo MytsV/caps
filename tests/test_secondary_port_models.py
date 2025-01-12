@@ -12,7 +12,7 @@ from lib.core.secondary_ports import (
     BaseCrudRepositoryOutputPort,
     UpdatedData,
     CreatedData,
-    DeletedData
+    DeletedData,
 )
 from lib.core.dto import SuccessDTO
 

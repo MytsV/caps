@@ -12,9 +12,9 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseSDKModel
     def __init__(self, sqla_model: SoftModelBase) -> None:
         self._sqla_model = sqla_model
         pass
-    
+
     @sqla_session_context()
     def create(self, session: Session, request: TBaseCrudRequestModel) -> TBaseDTO[TBaseSDKModel]:
-       pass
-       # Something like
-       # sqla_instance = request.model(**request.creation_data) 
+        pass
+        # Something like
+        # sqla_instance = request.model(**request.creation_data)

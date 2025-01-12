@@ -115,7 +115,6 @@ class FastAPIEndpoint(ABC, Generic[TBaseControllerParameters, TBaseViewModel]):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
-
 class FastAPICRUDRepositoryEndpoint(ABC, Generic[TBaseDTORequestModel, TBaseViewModel]):
     def __init__(
         self,
@@ -211,4 +210,3 @@ class FastAPICRUDRepositoryEndpoint(ABC, Generic[TBaseDTORequestModel, TBaseView
             return
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
-

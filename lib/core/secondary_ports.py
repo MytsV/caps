@@ -12,6 +12,7 @@ class BaseCrudRequest(BaseModel):
     """
     A base class for the CRUD DTO request model.
     """
+
     pass
 
 
@@ -80,19 +81,23 @@ class BaseCrudRepositoryOutputPort(BaseAbstractClass, Generic[TSession, TEntityS
     @abstractmethod
     def create(self, session: TSession, request: TCreateRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
         raise NotImplementedError("You must implement the create method in your repository")
-    
+
     @abstractmethod
     def get(self, session: TSession, request: TBaseCrudRequest) -> TBaseDTO[TEntitySDKModel]:
-        raise NotImplementedError("You must implement the get method in your repository. Should 'read' a single record.")
+        raise NotImplementedError(
+            "You must implement the get method in your repository. Should 'read' a single record."
+        )
 
     @abstractmethod
     def list(self, session: TSession, request: TBaseCrudRequest) -> TBaseDTO[List[TEntitySDKModel]]:
-        raise NotImplementedError("You must implement the list method in your repository. Should 'read' multiple records.")
-    
+        raise NotImplementedError(
+            "You must implement the list method in your repository. Should 'read' multiple records."
+        )
+
     @abstractmethod
     def update(self, session: TSession, request: TUpdateRequest) -> UpdatedDTO[TEntitySDKModel] | BaseError:
         raise NotImplementedError("You must implement the update method in your repository")
-    
+
     @abstractmethod
     def delete(self, session: TSession, request: TDeleteRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
         raise NotImplementedError("You must implement the delete method in your repository")
