@@ -36,7 +36,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
     @sqla_session_context()
     def create(self, session: Session, request: TCreateRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
         try:
-            instance = self._sqla_model.from_dict(request.data.dict())
+            instance = self._sqla_model.from_dict(request.data.model_dump())
             instance.save(session=session)
             session.commit()
         except Exception as e:
@@ -93,7 +93,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                     digest=str(uuid.uuid4()),
                 )
 
-            for key, value in request.data.dict().items():
+            for key, value in request.data.model_dump().items():
                 if hasattr(instance, key):
                     setattr(instance, key, value)
                 elif value is not None:
