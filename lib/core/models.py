@@ -28,3 +28,12 @@ class BaseSDKModel(BaseModel):
 
 
 TBaseSDKModel = TypeVar("TBaseSDKModel", bound=BaseSDKModel)
+
+TID = TypeVar("TID", str, int)
+
+
+class EntitySDKModel(BaseSDKModel):
+    id: TID
+
+
+TEntitySDKModel = TypeVar("TEntitySDKModel", bound=EntitySDKModel)
