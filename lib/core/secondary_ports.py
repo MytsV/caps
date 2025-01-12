@@ -22,7 +22,7 @@ TSession = TypeVar("TSession")
 
 
 class CreateRequest(BaseCrudRequest):
-    data: TBaseSDKModel
+    data: dict
 
 
 TCreateRequest = TypeVar("TCreateRequest", bound=CreateRequest)
@@ -30,7 +30,7 @@ TCreateRequest = TypeVar("TCreateRequest", bound=CreateRequest)
 
 class UpdateRequest(BaseCrudRequest):
     id: TID
-    data: TBaseSDKModel
+    data: dict
 
 
 TUpdateRequest = TypeVar("TUpdateRequest", bound=UpdateRequest)

@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from lib.core.dto import SuccessDTO
 from lib.core.error import BaseError
-from lib.core.models import BaseSDKModel, EntitySDKModel
 from lib.core.secondary_ports import (
     CreatedDTO,
     CreateRequest,
@@ -15,53 +14,19 @@ from lib.core.secondary_ports import (
     UpdatedDTO,
     BaseCrudRequest,
 )
-from lib.infrastructure.repository.sqla.database import Base
-from lib.infrastructure.repository.sqla.models import SoftModelBase
-from sqlalchemy import Column, Integer, String
 import pytest
 
-from lib.infrastructure.repository.sqla.sqla_crud_repository import BaseSqlaCrudRepository
 from lib.infrastructure.repository.sqla.utils import get_database_config
 
 from yaml import dump
 import tempfile
 
-
-class TestSDKModel(EntitySDKModel):
-    id: int | None = None
-    name: str
-
-
-class TestPartialSDKModel(BaseSDKModel):
-    name: str
-    extra_field: str | None = None
-
-
-class TestSQLModel(Base, SoftModelBase):
-    __tablename__ = "test_items"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-    def to_sdk_model(self) -> TestSDKModel:
-        return TestSDKModel(id=self.id, name=self.name)
-
-
-class TestSetup:
-    @pytest.fixture(autouse=True)
-    def cleanup(self, repository):
-        yield
-        session = repository.session()
-        session.query(TestSQLModel).delete()
-        session.commit()
-
-    @pytest.fixture(scope="class")
-    def repository(self):
-        return BaseSqlaCrudRepository(TestSQLModel)
+from tests.repository.models import TestSQLModel, TestPartialSDKModel, TestSDKModel, TestSetup
 
 
 class TestCreateBaseSqlaCrudRepository(TestSetup):
     def test_create_success(self, repository):
-        create_request = CreateRequest(data=TestPartialSDKModel(name="Test Item"))
+        create_request = CreateRequest(data=TestPartialSDKModel(name="Test Item").model_dump())
 
         result = repository.create(create_request)
 
@@ -71,17 +36,19 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
         assert isinstance(result.data.created_at, datetime)
 
     def test_create_error_handling(self, repository):
-        create_request = CreateRequest(data=TestPartialSDKModel(name="Test Item"))
+        create_request = CreateRequest(data=TestPartialSDKModel(name="Test Item").model_dump())
 
         with patch.object(TestSQLModel, "save", side_effect=Exception("Database error")):
             result = repository.create(create_request)
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "ErrorCreatingNewEntity"
+        assert result.errorType == "database_error"
         assert "Database error" in result.message
 
     def test_create_with_extra_fields(self, repository):
-        create_request = CreateRequest(data=TestPartialSDKModel(name="Test Item", extra_field="Should be ignored"))
+        create_request = CreateRequest(
+            data=TestPartialSDKModel(name="Test Item", extra_field="Should be ignored").model_dump()
+        )
 
         result = repository.create(create_request)
 
@@ -91,7 +58,7 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
 
 class TestGetBaseSqlaCrudRepository(TestSetup):
     def test_get_existing(self, repository):
-        create_request = CreateRequest(data=TestSDKModel(name="Test Item"))
+        create_request = CreateRequest(data=TestSDKModel(name="Test Item").model_dump())
         created = repository.create(create_request)
 
         get_request = GetRequest(id=created.data.data.id)
@@ -118,8 +85,8 @@ class TestListBaseSqlaCrudRepository(TestSetup):
         assert len(result.data) == 0
 
     def test_list_multiple_items(self, repository):
-        repository.create(CreateRequest(data=TestPartialSDKModel(name="Item 1")))
-        repository.create(CreateRequest(data=TestPartialSDKModel(name="Item 2")))
+        repository.create(CreateRequest(data=TestPartialSDKModel(name="Item 1").model_dump()))
+        repository.create(CreateRequest(data=TestPartialSDKModel(name="Item 2").model_dump()))
 
         result = repository.list(BaseCrudRequest())
 
@@ -130,9 +97,9 @@ class TestListBaseSqlaCrudRepository(TestSetup):
 
 class TestUpdateBaseSqlaCrudRepository(TestSetup):
     def test_update_existing(self, repository):
-        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="Original")))
+        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="Original").model_dump()))
 
-        update_request = UpdateRequest(id=created.data.data.id, data=TestPartialSDKModel(name="Updated"))
+        update_request = UpdateRequest(id=created.data.data.id, data=TestPartialSDKModel(name="Updated").model_dump())
 
         result = repository.update(update_request)
 
@@ -141,7 +108,7 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
         assert isinstance(result.data.updated_at, datetime)
 
     def test_update_nonexistent(self, repository):
-        update_request = UpdateRequest(id=999, data=TestPartialSDKModel(name="Updated"))
+        update_request = UpdateRequest(id=999, data=TestPartialSDKModel(name="Updated").model_dump())
 
         result = repository.update(update_request)
 
@@ -149,10 +116,10 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
         assert "not found" in result.message
 
     def test_update_with_invalid_fields(self, repository):
-        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="Original")))
+        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="Original").model_dump()))
 
         update_request = UpdateRequest(
-            id=created.data.data.id, data=TestPartialSDKModel(name="Updated", extra_field="value")
+            id=created.data.data.id, data=TestPartialSDKModel(name="Updated", extra_field="value").model_dump()
         )
 
         result = repository.update(update_request)
@@ -163,7 +130,7 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
 
 class TestDeleteBaseSqlaCrudRepository(TestSetup):
     def test_delete_existing(self, repository):
-        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="To Delete")))
+        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="To Delete").model_dump()))
 
         delete_request = DeleteRequest(id=created.data.data.id)
 
@@ -186,7 +153,7 @@ class TestDeleteBaseSqlaCrudRepository(TestSetup):
         assert "not found" in result.message
 
     def test_delete_already_deleted(self, repository):
-        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="To Delete")))
+        created = repository.create(CreateRequest(data=TestPartialSDKModel(name="To Delete").model_dump()))
         first_delete = repository.delete(DeleteRequest(id=created.data.data.id))
 
         second_delete = repository.delete(DeleteRequest(id=created.data.data.id))

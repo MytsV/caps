@@ -36,14 +36,14 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
     @sqla_session_context()
     def create(self, session: Session, request: TCreateRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
         try:
-            instance = self._sqla_model.from_dict(request.data.model_dump())
+            instance = self._sqla_model.from_dict(request.data)
             instance.save(session=session)
             session.commit()
         except Exception as e:
             return BaseError(
                 message=f"Error creating a new entity: {str(e)}",
                 name="Error creating a new entity",
-                errorType="ErrorCreatingNewEntity",
+                errorType="database_error",
                 context=e,
                 digest=str(uuid.uuid4()),
             )
@@ -59,7 +59,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             return BaseError(
                 message=f"{self._sqla_model.__name__} not found",
                 name="Entity not found",
-                errorType="EntityNotFound",
+                errorType="not_found",
                 context={},
                 digest=str(uuid.uuid4()),
             )
@@ -75,7 +75,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             return BaseError(
                 message=f"Error listing entities: {str(e)}",
                 name="Error listing entities",
-                errorType="ErrorListingEntities",
+                errorType="database_error",
                 context=e,
                 digest=str(uuid.uuid4()),
             )
@@ -88,19 +88,19 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                 return BaseError(
                     message=f"{self._sqla_model.__name__} not found",
                     name="Entity not found",
-                    errorType="EntityNotFound",
+                    errorType="not_found",
                     context={},
                     digest=str(uuid.uuid4()),
                 )
 
-            for key, value in request.data.model_dump().items():
+            for key, value in request.data.items():
                 if hasattr(instance, key):
                     setattr(instance, key, value)
                 elif value is not None:
                     return BaseError(
                         message=f"Invalid field: {key}",
                         name="Invalid field",
-                        errorType="InvalidField",
+                        errorType="invalid_field",
                         context={},
                         digest=str(uuid.uuid4()),
                     )
@@ -126,7 +126,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                 return BaseError(
                     message=f"{self._sqla_model.__name__} not found",
                     name="Entity not found",
-                    errorType="EntityNotFound",
+                    errorType="not_found",
                     context={},
                     digest=str(uuid.uuid4()),
                 )
@@ -141,7 +141,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             return BaseError(
                 message=f"Error deleting entity: {str(e)}",
                 name="Error deleting entity",
-                errorType="ErrorDeletingEntity",
+                errorType="database_error",
                 context=e,
                 digest="ErrorWhileDeletingEntity",
             )
