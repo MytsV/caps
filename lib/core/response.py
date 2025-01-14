@@ -14,7 +14,7 @@ from lib.core.view_model import BaseViewModel, TBaseViewModel
 class PresenterResponse(ABC, Generic[TBaseViewModel]):
     """
     Abstract base class for presenter response objects.
-    This needs to be implemented by a web framework, for example.
+    This needs to be implemented by a web framework that doesn't have built-in data validation (like Pydantic).
     """
 
     pass
