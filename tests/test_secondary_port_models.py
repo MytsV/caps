@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List
 
-from lib.core.models import EntitySDKModel
-from lib.core.secondary_ports import (
+from lib.core.models import BaseCoreModel
+from lib.infrastructure.secondary_ports import (
     CreateRequest,
     UpdateRequest,
     DeleteRequest,
@@ -18,7 +18,8 @@ from lib.core.dto import SuccessDTO
 
 
 # Mock implementations
-class MockEntity(EntitySDKModel):
+class MockEntity(BaseCoreModel):
+    id: int
     name: str
 
 

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from lib.core.bac import BaseAbstractClass
 from lib.core.dto import TBaseDTO, SuccessDTO
 from lib.core.error import BaseError
-from lib.core.models import TID, TEntitySDKModel, TBaseSDKModel
+from lib.core.models import TID, TBaseCoreModel
 
 
 class BaseCrudRequest(BaseModel):
@@ -50,34 +50,34 @@ class GetRequest(BaseCrudRequest):
 TGetRequest = TypeVar("TGetRequest", bound=GetRequest)
 
 
-class CreatedData(BaseModel, Generic[TEntitySDKModel]):
-    data: TEntitySDKModel
+class CreatedData(BaseModel, Generic[TBaseCoreModel]):
+    data: TBaseCoreModel
     created_at: datetime
 
 
-class CreatedDTO(SuccessDTO[CreatedData[TEntitySDKModel]], Generic[TEntitySDKModel]):
+class CreatedDTO(SuccessDTO[CreatedData[TBaseCoreModel]], Generic[TBaseCoreModel]):
     pass
 
 
-class UpdatedData(BaseModel, Generic[TEntitySDKModel]):
-    data: TEntitySDKModel
+class UpdatedData(BaseModel, Generic[TBaseCoreModel]):
+    data: TBaseCoreModel
     updated_at: datetime
 
 
-class UpdatedDTO(SuccessDTO[UpdatedData[TEntitySDKModel]], Generic[TEntitySDKModel]):
+class UpdatedDTO(SuccessDTO[UpdatedData[TBaseCoreModel]], Generic[TBaseCoreModel]):
     pass
 
 
-class DeletedData(BaseModel, Generic[TEntitySDKModel]):
+class DeletedData(BaseModel, Generic[TBaseCoreModel]):
     id: TID
     deleted_at: datetime
 
 
-class DeletedDTO(SuccessDTO[DeletedData[TEntitySDKModel]], Generic[TEntitySDKModel]):
+class DeletedDTO(SuccessDTO[DeletedData[TBaseCoreModel]], Generic[TBaseCoreModel]):
     pass
 
 
-class BaseCrudRepositoryOutputPort(BaseAbstractClass, Generic[TSession, TEntitySDKModel]):
+class BaseCrudRepositoryOutputPort(BaseAbstractClass, Generic[TSession, TBaseCoreModel]):
     """
     A base class for the CRUD repository output port.
     """
@@ -86,25 +86,25 @@ class BaseCrudRepositoryOutputPort(BaseAbstractClass, Generic[TSession, TEntityS
         super().__init__()
 
     @abstractmethod
-    def create(self, session: TSession, request: TCreateRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
+    def create(self, session: TSession, request: TCreateRequest) -> CreatedDTO[TBaseCoreModel] | BaseError:
         raise NotImplementedError("You must implement the create method in your repository")
 
     @abstractmethod
-    def get(self, session: TSession, request: TGetRequest) -> TBaseDTO[TEntitySDKModel]:
+    def get(self, session: TSession, request: TGetRequest) -> TBaseDTO[TBaseCoreModel]:
         raise NotImplementedError(
             "You must implement the get method in your repository. Should 'read' a single record."
         )
 
     @abstractmethod
-    def list(self, session: TSession, request: TBaseCrudRequest) -> TBaseDTO[List[TEntitySDKModel]]:
+    def list(self, session: TSession, request: TBaseCrudRequest) -> TBaseDTO[List[TBaseCoreModel]]:
         raise NotImplementedError(
             "You must implement the list method in your repository. Should 'read' multiple records."
         )
 
     @abstractmethod
-    def update(self, session: TSession, request: TUpdateRequest) -> UpdatedDTO[TEntitySDKModel] | BaseError:
+    def update(self, session: TSession, request: TUpdateRequest) -> UpdatedDTO[TBaseCoreModel] | BaseError:
         raise NotImplementedError("You must implement the update method in your repository")
 
     @abstractmethod
-    def delete(self, session: TSession, request: TDeleteRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
+    def delete(self, session: TSession, request: TDeleteRequest) -> CreatedDTO[TBaseCoreModel] | BaseError:
         raise NotImplementedError("You must implement the delete method in your repository")

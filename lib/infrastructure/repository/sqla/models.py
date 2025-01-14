@@ -12,11 +12,11 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import mapped_column, object_mapper, MappedColumn
 from sqlalchemy.orm.session import Session
 
-from lib.core.models import TEntitySDKModel
+from lib.core.models import TBaseCoreModel
 from lib.infrastructure.repository.sqla.database import Base
 
 
-class ModelBase(object):
+class SqlaModelBase(object):
     """
     Base class for all SQLA models.
     """
@@ -34,7 +34,7 @@ class ModelBase(object):
         return instance
 
     @abstractmethod
-    def to_sdk_model(self) -> TEntitySDKModel:
+    def to_sdk_model(self) -> TBaseCoreModel:
         raise NotImplementedError("You must implement the to_sdk_model method in your model")
 
     @declared_attr  # type: ignore
@@ -92,7 +92,7 @@ class ModelBase(object):
     def __getitem__(self, key: Any) -> Any:
         return getattr(self, key)
 
-    def __iter__(self) -> "ModelBase":
+    def __iter__(self) -> "SqlaModelBase":
         self._i = iter(object_mapper(self).columns)
         return self
 
@@ -117,7 +117,7 @@ class ModelBase(object):
     next = __next__
 
 
-class SoftModelBase(ModelBase):
+class SoftSqlaModelBase(SqlaModelBase):
     """
     Base class for SQLA Models with soft-deletion support
     """
@@ -150,4 +150,4 @@ class SoftModelBase(ModelBase):
         self.save(session=session)  # TODO: typing: if session is None, it doesn't have save
 
 
-TSoftModelBase = TypeVar("TSoftModelBase", bound=SoftModelBase)
+TSoftModelBase = TypeVar("TSoftModelBase", bound=SoftSqlaModelBase)

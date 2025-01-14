@@ -3,14 +3,14 @@ from enum import Enum
 from typing import Annotated, Any, Dict, Generic, List, Callable, TypeVar, Union
 from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import ValidationError
-from lib.core.controller import BaseController, TBaseControllerParameters
+from lib.infrastructure.controller import BaseController, TBaseControllerParameters
 from lib.core.dto import SuccessDTO
 from lib.core.error import BaseError
-from lib.core.feature_descriptor import BaseFeatureDescriptor
+from lib.infrastructure.config.feature_descriptor import BaseFeatureDescriptor
 import logging
 
-from lib.core.models import TEntitySDKModel
-from lib.core.secondary_ports import (
+from lib.core.models import TBaseCoreModel
+from lib.infrastructure.secondary_ports import (
     TBaseCrudRequest,
     DeleteRequest,
     DeletedDTO,
@@ -190,50 +190,50 @@ class FastAPICrudRepositoryEndpoint(BaseFastAPIEndpoint[TBaseCrudRequest, TBaseV
     def register_endpoint(self) -> None:
         @self.router.post(
             f"{self.prefix}/{self.name}",
-            response_model=CreatedDTO[TEntitySDKModel],
+            response_model=CreatedDTO[TBaseCoreModel],
             responses=self.responses,
             dependencies=[Depends(verify_auth_token)],
         )
         @handle_repository_errors
-        async def create_item(request: CreateRequest = Body()) -> CreatedDTO[TEntitySDKModel]:
+        async def create_item(request: CreateRequest = Body()) -> CreatedDTO[TBaseCoreModel]:
             return self._repository.create(request)
 
         @self.router.get(
             f"{self.prefix}/{self.name}/{{item_id}}",
-            response_model=SuccessDTO[TEntitySDKModel],
+            response_model=SuccessDTO[TBaseCoreModel],
             responses=self.responses,
             dependencies=[Depends(verify_auth_token)],
         )
         @handle_repository_errors
-        async def get_item(item_id: int) -> SuccessDTO[TEntitySDKModel]:
+        async def get_item(item_id: int) -> SuccessDTO[TBaseCoreModel]:
             return self._repository.get(GetRequest(id=item_id))
 
         @self.router.get(
             f"{self.prefix}/{self.name}",
-            response_model=SuccessDTO[List[TEntitySDKModel]],
+            response_model=SuccessDTO[List[TBaseCoreModel]],
             responses=self.responses,
             dependencies=[Depends(verify_auth_token)],
         )
         @handle_repository_errors
-        async def list_items() -> SuccessDTO[List[TEntitySDKModel]]:
+        async def list_items() -> SuccessDTO[List[TBaseCoreModel]]:
             return self._repository.list(BaseCrudRequest())
 
         @self.router.put(
             f"{self.prefix}/{self.name}",
-            response_model=UpdatedDTO[TEntitySDKModel],
+            response_model=UpdatedDTO[TBaseCoreModel],
             responses=self.responses,
             dependencies=[Depends(verify_auth_token)],
         )
         @handle_repository_errors
-        async def update_item(request: UpdateRequest) -> UpdatedDTO[TEntitySDKModel]:
+        async def update_item(request: UpdateRequest) -> UpdatedDTO[TBaseCoreModel]:
             return self._repository.update(request)
 
         @self.router.delete(
             f"{self.prefix}/{self.name}/{{item_id}}",
-            response_model=DeletedDTO[TEntitySDKModel],
+            response_model=DeletedDTO[TBaseCoreModel],
             responses=self.responses,
             dependencies=[Depends(verify_auth_token)],
         )
         @handle_repository_errors
-        async def delete_item(item_id: int) -> DeletedDTO[TEntitySDKModel]:
+        async def delete_item(item_id: int) -> DeletedDTO[TBaseCoreModel]:
             return self._repository.delete(DeleteRequest(id=item_id))

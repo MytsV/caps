@@ -1,12 +1,12 @@
 from typing import Callable, Concatenate, Literal
 
-from lib.core.models import BaseSDKModel
+from lib.core.models import BaseCoreModel
 
 import traceback
 import uuid
 
 
-class BaseError(BaseSDKModel):
+class BaseError(BaseCoreModel):
     """
     An error class for the project, to represent 'soft' errors and expected exceptions.
 
@@ -32,7 +32,7 @@ class BaseError(BaseSDKModel):
 type TExcFields = Literal[False] | int | str | BaseException
 
 
-class BaseSDKException(BaseSDKModel):
+class BaseCoreException(BaseCoreModel):
     """
     An exception class for the project, to represent 'hard' errors and unexpected exceptions.
 
@@ -56,7 +56,7 @@ class BaseSDKException(BaseSDKModel):
     errorType: str
 
 
-type TError = BaseError | BaseSDKException
+type TError = BaseError | BaseCoreException
 
 
 def serialize_exception(e: Exception) -> dict[str, TExcFields]:
@@ -70,7 +70,7 @@ def serialize_exception(e: Exception) -> dict[str, TExcFields]:
 
 
 type TMethod[O, **P, T] = Callable[Concatenate[O, P], T]
-type TWrappedMethod[O, **P, T] = Callable[Concatenate[O, P], T | BaseSDKException]
+type TWrappedMethod[O, **P, T] = Callable[Concatenate[O, P], T | BaseCoreException]
 
 
 def exception_handler[O, **P, T](digest: str | None) -> Callable[[TMethod[O, P, T]], TWrappedMethod[O, P, T]]:
@@ -79,13 +79,13 @@ def exception_handler[O, **P, T](digest: str | None) -> Callable[[TMethod[O, P, 
     """
 
     def decorator(method: TMethod[O, P, T]) -> TWrappedMethod[O, P, T]:
-        def wrapper(self: O, /, *args: P.args, **kwargs: P.kwargs) -> T | BaseSDKException:
+        def wrapper(self: O, /, *args: P.args, **kwargs: P.kwargs) -> T | BaseCoreException:
             try:
                 return method(self, *args, **kwargs)
 
             except Exception as e:
 
-                return BaseSDKException(
+                return BaseCoreException(
                     name="Unexpected Exception",
                     exception_source=self.__class__.__name__,
                     digest=digest or str(uuid.uuid4()),

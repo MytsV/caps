@@ -3,7 +3,7 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 
-class BaseSDKModel(BaseModel):
+class BaseCoreModel(BaseModel):
     """
     A base SDK model class for the project.
     """
@@ -27,13 +27,6 @@ class BaseSDKModel(BaseModel):
         print(json.dumps(json_data, indent=2))
 
 
-TBaseSDKModel = TypeVar("TBaseSDKModel", bound=BaseSDKModel)
+TBaseCoreModel = TypeVar("TBaseCoreModel", bound=BaseCoreModel)
 
 TID = TypeVar("TID", str, int)
-
-
-class EntitySDKModel(BaseSDKModel):
-    id: TID
-
-
-TEntitySDKModel = TypeVar("TEntitySDKModel", bound=EntitySDKModel)

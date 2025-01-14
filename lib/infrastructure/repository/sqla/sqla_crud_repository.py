@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import List
 
 from lib.core.error import BaseError
-from lib.core.models import TEntitySDKModel
+from lib.core.models import TBaseCoreModel
 from lib.core.dto import TBaseDTO, SuccessDTO
-from lib.core.secondary_ports import (
+from lib.infrastructure.secondary_ports import (
     BaseCrudRepositoryOutputPort,
     TBaseCrudRequest,
     TCreateRequest,
@@ -19,14 +19,14 @@ from lib.core.secondary_ports import (
     DeletedDTO,
     DeletedData,
 )
-from lib.infrastructure.repository.sqla.models import SoftModelBase
+from lib.infrastructure.repository.sqla.models import SoftSqlaModelBase
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
 
 from sqlalchemy.orm import Session
 
 
-class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKModel]):
-    def __init__(self, sqla_model: type[SoftModelBase]) -> None:
+class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreModel]):
+    def __init__(self, sqla_model: type[SoftSqlaModelBase]) -> None:
         self._sqla_model = sqla_model
 
     @sqla_session_context()
@@ -34,7 +34,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
         return session
 
     @sqla_session_context()
-    def create(self, session: Session, request: TCreateRequest) -> CreatedDTO[TEntitySDKModel] | BaseError:
+    def create(self, session: Session, request: TCreateRequest) -> CreatedDTO[TBaseCoreModel] | BaseError:
         try:
             instance = self._sqla_model.from_dict(request.data)
             instance.save(session=session)
@@ -48,12 +48,12 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                 digest=str(uuid.uuid4()),
             )
 
-        return CreatedDTO[TEntitySDKModel](
-            data=CreatedData[TEntitySDKModel](data=instance.to_sdk_model(), created_at=datetime.now())
+        return CreatedDTO[TBaseCoreModel](
+            data=CreatedData[TBaseCoreModel](data=instance.to_sdk_model(), created_at=datetime.now())
         )
 
     @sqla_session_context()
-    def get(self, session: Session, request: TGetRequest) -> TBaseDTO[TEntitySDKModel]:
+    def get(self, session: Session, request: TGetRequest) -> TBaseDTO[TBaseCoreModel]:
         instance = session.query(self._sqla_model).filter_by(id=request.id).first()
         if not instance:
             return BaseError(
@@ -64,13 +64,13 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                 digest=str(uuid.uuid4()),
             )
 
-        return SuccessDTO[TEntitySDKModel](data=instance.to_sdk_model())
+        return SuccessDTO[TBaseCoreModel](data=instance.to_sdk_model())
 
     @sqla_session_context()
-    def list(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[List[TEntitySDKModel]]:
+    def list(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[List[TBaseCoreModel]]:
         try:
             instances = session.query(self._sqla_model).all()
-            return SuccessDTO[List[TEntitySDKModel]](data=[instance.to_sdk_model() for instance in instances])
+            return SuccessDTO[List[TBaseCoreModel]](data=[instance.to_sdk_model() for instance in instances])
         except Exception as e:
             return BaseError(
                 message=f"Error listing entities: {str(e)}",
@@ -81,7 +81,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             )
 
     @sqla_session_context()
-    def update(self, session: Session, request: TUpdateRequest) -> UpdatedDTO[TEntitySDKModel] | BaseError:
+    def update(self, session: Session, request: TUpdateRequest) -> UpdatedDTO[TBaseCoreModel] | BaseError:
         try:
             instance = session.query(self._sqla_model).filter_by(id=request.id).first()
             if not instance:
@@ -106,8 +106,8 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
                     )
 
             session.commit()
-            return UpdatedDTO[TEntitySDKModel](
-                data=UpdatedData[TEntitySDKModel](data=instance.to_sdk_model(), updated_at=datetime.now())
+            return UpdatedDTO[TBaseCoreModel](
+                data=UpdatedData[TBaseCoreModel](data=instance.to_sdk_model(), updated_at=datetime.now())
             )
         except Exception as e:
             return BaseError(
@@ -119,7 +119,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             )
 
     @sqla_session_context()
-    def delete(self, session: Session, request: TDeleteRequest) -> DeletedDTO[TEntitySDKModel] | BaseError:
+    def delete(self, session: Session, request: TDeleteRequest) -> DeletedDTO[TBaseCoreModel] | BaseError:
         try:
             instance = session.query(self._sqla_model).filter_by(id=request.id).first()
             if not instance:
@@ -134,8 +134,8 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TEntitySDKMod
             session.delete(instance)
             session.commit()
 
-            return DeletedDTO[TEntitySDKModel](
-                data=DeletedData[TEntitySDKModel](id=request.id, deleted_at=datetime.now())
+            return DeletedDTO[TBaseCoreModel](
+                data=DeletedData[TBaseCoreModel](id=request.id, deleted_at=datetime.now())
             )
         except Exception as e:
             return BaseError(

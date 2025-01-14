@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
-from lib.core.presenter import BasePresenter
+from lib.infrastructure.presenter import BasePresenter
 from lib.core.usecase import BaseUseCase
 
 from lib.core.usecase_models import (

@@ -1,4 +1,4 @@
-from lib.core.feature_descriptor import BaseFeatureDescriptor
+from lib.infrastructure.config.feature_descriptor import BaseFeatureDescriptor
 from lib.infrastructure.fastapi.fastapi_endpoint import FastAPICrudRepositoryEndpoint
 import pytest
 from fastapi import FastAPI
