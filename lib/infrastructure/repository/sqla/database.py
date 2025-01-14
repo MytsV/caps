@@ -13,8 +13,10 @@ TDatabaseFactory = Callable[[], _GeneratorContextManager[Session]]
 
 
 class Database:
-    def __init__(self, db_host: str, db_port: int, db_user: str, db_password: str, db_name: str) -> None:
-        self.__engine_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    def __init__(
+        self, db_engine: str, db_host: str, db_port: int, db_user: str, db_password: str, db_name: str
+    ) -> None:
+        self.__engine_url = f"{db_engine}://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
         self.__engine = create_engine(self.__engine_url, echo=True)
         self.__session_factory = orm.scoped_session(
             orm.sessionmaker(bind=self.__engine, autoflush=True, expire_on_commit=True, autocommit=False, future=True)

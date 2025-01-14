@@ -59,6 +59,7 @@ def resolve_config_path(yaml_config_file: str | None = None) -> str:
 
 
 class DatabaseConfig(BaseModel):
+    db_engine: str
     db_host: str
     db_port: int
     db_name: str
@@ -75,6 +76,7 @@ def get_database_config(yaml_config_file: str | None = None) -> DatabaseConfig:
     try:
         rdbms_config = config["rdbms"]
         return DatabaseConfig(
+            db_engine=parse_config_value(rdbms_config["engine"]),
             db_host=parse_config_value(rdbms_config["host"]),
             db_port=int(parse_config_value(rdbms_config["port"])),
             db_name=parse_config_value(rdbms_config["database"]),
@@ -118,6 +120,7 @@ def sqla_session_context(
         @functools.wraps(func)
         def wrapper(self: Any, *args: Any, **kwargs: Any) -> RetType:
             session = Database(
+                db_engine=config.db_engine,
                 db_host=config.db_host,
                 db_port=config.db_port,
                 db_user=config.db_user,

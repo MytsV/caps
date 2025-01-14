@@ -186,6 +186,7 @@ class TestGetDatabaseConfig:
     def test_constant_config(self, temp_config_file):
         config = {
             "rdbms": {
+                "engine": "postgresql",
                 "host": "localhost",
                 "port": "5433",
                 "database": "test_db",
@@ -198,6 +199,7 @@ class TestGetDatabaseConfig:
 
         result = get_database_config(temp_config_file)
 
+        assert result.db_engine == "postgresql"
         assert result.db_host == "localhost"
         assert result.db_port == 5433
         assert result.db_name == "test_db"
@@ -207,6 +209,7 @@ class TestGetDatabaseConfig:
     def test_env_config(self, temp_config_file):
         os.environ.update(
             {
+                "RDBMS_ENGINE": "postgresql",
                 "RDBMS_HOST": "env-host",
                 "RDBMS_PORT": "5434",
                 "RDBMS_DB": "env_db",
@@ -217,6 +220,7 @@ class TestGetDatabaseConfig:
 
         config = {
             "rdbms": {
+                "engine": "${RDBMS_ENGINE}",
                 "host": "${RDBMS_HOST}",
                 "port": "${RDBMS_PORT}",
                 "database": "${RDBMS_DB}",
@@ -229,6 +233,7 @@ class TestGetDatabaseConfig:
 
         result = get_database_config(temp_config_file)
 
+        assert result.db_engine == "postgresql"
         assert result.db_host == "env-host"
         assert result.db_port == 5434
         assert result.db_name == "env_db"
@@ -240,6 +245,7 @@ class TestGetDatabaseConfig:
 
         config = {
             "rdbms": {
+                "engine": "postgresql",
                 "host": "${RDBMS_HOST:localhost}",
                 "port": "${RDBMS_PORT:5433}",
                 "database": "test_db",
@@ -252,6 +258,7 @@ class TestGetDatabaseConfig:
 
         result = get_database_config(temp_config_file)
 
+        assert result.db_engine == "postgresql"
         assert result.db_host == "localhost"
         assert result.db_port == 5433
         assert result.db_name == "test_db"
