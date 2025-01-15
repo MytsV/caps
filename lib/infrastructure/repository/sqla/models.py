@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from datetime import datetime
-from importlib.metadata.diagnose import inspect
 from typing import Dict, Any, TypeVar
 
 from sqlalchemy import (
@@ -34,7 +33,7 @@ class SqlaModelBase(object):
         return instance
 
     @abstractmethod
-    def to_sdk_model(self) -> TBaseCoreModel:
+    def to_core_model(self) -> TBaseCoreModel:
         raise NotImplementedError("You must implement the to_sdk_model method in your model")
 
     @declared_attr  # type: ignore

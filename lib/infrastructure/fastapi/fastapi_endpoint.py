@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Annotated, Any, Dict, Generic, List, Callable, TypeVar, Union
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Body, HTTPException
 from pydantic import ValidationError
 from lib.infrastructure.controller import BaseController, TBaseControllerParameters
 from lib.core.dto import SuccessDTO
@@ -22,16 +22,14 @@ from lib.infrastructure.secondary_ports import (
     CreatedDTO,
 )
 from lib.infrastructure.repository.sqla.sqla_crud_repository import BaseSqlaCrudRepository
-
-logger = logging.getLogger(__name__)
-
 from lib.core.view_model import (
     BaseViewModel,
     TBaseViewModel,
 )
 
-from fastapi import status, Body, HTTPException
 from functools import wraps
+
+logger = logging.getLogger(__name__)
 
 
 class BaseFastAPIEndpoint(ABC, Generic[TBaseControllerParameters, TBaseViewModel]):

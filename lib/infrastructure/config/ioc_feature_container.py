@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from lib.core.feature_descriptor import BaseFeatureDescriptor
+from lib.infrastructure.config.feature_descriptor import BaseFeatureDescriptor
 
 
 class BaseFeatureContainer(containers.DeclarativeContainer):

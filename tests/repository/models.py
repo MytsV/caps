@@ -22,7 +22,7 @@ class TestSqlaModel(Base, SoftSqlaModelBase):
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
-    def to_sdk_model(self) -> TestCoreModel:
+    def to_core_model(self) -> TestCoreModel:
         return TestCoreModel(id=self.id, name=self.name)
 
 

@@ -49,7 +49,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreMode
             )
 
         return CreatedDTO[TBaseCoreModel](
-            data=CreatedData[TBaseCoreModel](data=instance.to_sdk_model(), created_at=datetime.now())
+            data=CreatedData[TBaseCoreModel](data=instance.to_core_model(), created_at=datetime.now())
         )
 
     @sqla_session_context()
@@ -64,13 +64,13 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreMode
                 digest=str(uuid.uuid4()),
             )
 
-        return SuccessDTO[TBaseCoreModel](data=instance.to_sdk_model())
+        return SuccessDTO[TBaseCoreModel](data=instance.to_core_model())
 
     @sqla_session_context()
     def list(self, session: Session, request: TBaseCrudRequest) -> TBaseDTO[List[TBaseCoreModel]]:
         try:
             instances = session.query(self._sqla_model).all()
-            return SuccessDTO[List[TBaseCoreModel]](data=[instance.to_sdk_model() for instance in instances])
+            return SuccessDTO[List[TBaseCoreModel]](data=[instance.to_core_model() for instance in instances])
         except Exception as e:
             return BaseError(
                 message=f"Error listing entities: {str(e)}",
@@ -107,7 +107,7 @@ class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreMode
 
             session.commit()
             return UpdatedDTO[TBaseCoreModel](
-                data=UpdatedData[TBaseCoreModel](data=instance.to_sdk_model(), updated_at=datetime.now())
+                data=UpdatedData[TBaseCoreModel](data=instance.to_core_model(), updated_at=datetime.now())
             )
         except Exception as e:
             return BaseError(
