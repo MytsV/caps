@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Generic
 
 from lib.core.error import BaseError
 from lib.core.models import TBaseCoreModel
@@ -19,14 +19,14 @@ from lib.infrastructure.secondary_ports import (
     DeletedDTO,
     DeletedData,
 )
-from lib.infrastructure.repository.sqla.models import SoftSqlaModelBase
+from lib.infrastructure.repository.sqla.models import TSoftModelBase
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
 
 from sqlalchemy.orm import Session
 
 
-class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreModel]):
-    def __init__(self, sqla_model: type[SoftSqlaModelBase]) -> None:
+class BaseSqlaCrudRepository(BaseCrudRepositoryOutputPort[Session, TBaseCoreModel], Generic[TBaseCoreModel, TSoftModelBase]):
+    def __init__(self, sqla_model: TSoftModelBase) -> None:
         self._sqla_model = sqla_model
 
     @sqla_session_context()

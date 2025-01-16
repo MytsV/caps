@@ -36,4 +36,4 @@ class TestSetup:
 
     @pytest.fixture(scope="class")
     def repository(self):
-        return BaseSqlaCrudRepository(TestSqlaModel)
+        return BaseSqlaCrudRepository[TestCoreModel, TestSqlaModel](TestSqlaModel)
