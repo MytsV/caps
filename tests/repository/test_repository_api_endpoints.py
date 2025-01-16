@@ -1,4 +1,4 @@
-from lib.infrastructure.config.feature_descriptor import BaseFeatureDescriptor
+from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
 from lib.infrastructure.fastapi.fastapi_endpoint import FastAPICrudRepositoryEndpoint
 import pytest
 from fastapi import FastAPI
@@ -20,7 +20,7 @@ class TestFastAPICrudRepositoryEndpoint(TestSetup):
 
     @pytest.fixture
     def descriptor(self):
-        return BaseFeatureDescriptor(
+        return BaseEndpointDescriptor(
             name="test-items",
             description="Test CRUD operations for items",
             version="1.0.0",

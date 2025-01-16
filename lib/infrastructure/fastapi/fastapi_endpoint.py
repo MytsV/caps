@@ -10,6 +10,7 @@ from lib.infrastructure.config.feature_descriptor import BaseFeatureDescriptor
 import logging
 
 from lib.core.models import TBaseCoreModel
+from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
 from lib.infrastructure.secondary_ports import (
     TBaseCrudRequest,
     DeleteRequest,
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 class BaseFastAPIEndpoint(ABC, Generic[TBaseControllerParameters, TBaseViewModel]):
     def __init__(
         self,
-        descriptor: BaseFeatureDescriptor,
+        descriptor: BaseEndpointDescriptor,
         responses: Dict[int | str, dict[str, Any]],
     ) -> None:
         name = descriptor.name
@@ -103,7 +104,7 @@ class FastAPIControllerEndpoint(BaseFastAPIEndpoint[TBaseControllerParameters, T
     def __init__(
         self,
         controller: BaseController[TBaseControllerParameters, Any, Any, Any, TBaseViewModel],
-        descriptor: BaseFeatureDescriptor,
+        descriptor: BaseEndpointDescriptor,
         responses: Dict[int | str, dict[str, Any]],
     ) -> None:
         super().__init__(descriptor, responses)
@@ -178,7 +179,7 @@ class FastAPICrudRepositoryEndpoint(BaseFastAPIEndpoint[TBaseCrudRequest, TBaseV
     def __init__(
         self,
         repository: BaseSqlaCrudRepository,
-        descriptor: BaseFeatureDescriptor,
+        descriptor: BaseEndpointDescriptor,
         responses: Dict[int | str, dict[str, Any]],
     ) -> None:
         super().__init__(descriptor, responses)
