@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Annotated, Any, Dict
-from fastapi import APIRouter, Depends, HTTPException, Header, status, Body, HTTPException
+from typing import Annotated, Any, Dict, Optional
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Body, HTTPException, Response
 import logging
+from functools import wraps
+from typing import Callable
+from fastapi.responses import JSONResponse
 
+from lib.core.error import BaseError
 from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
 
 logger = logging.getLogger(__name__)
@@ -64,7 +68,7 @@ class BaseFastAPIEndpoint(ABC):
     def register_endpoint(self) -> None:
         raise NotImplementedError("You must implement the register_endpoint method")
 
-    def check_auth(self, x_auth_token: Annotated[str, Header()]) -> None:
+    def check_auth(self, x_auth_token: Annotated[Optional[str], Header()] = None) -> None:
         auth_required = self.descriptor.auth
         if not auth_required:
             return
@@ -76,3 +80,30 @@ class BaseFastAPIEndpoint(ABC):
             return
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+
+def default_error_handler():
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            response = await func(*args, **kwargs)
+
+            if isinstance(response, BaseError):
+                status_codes = {
+                    "gateway_endpoint_error": 502,
+                    "database_error": 503,
+                    "not_found_error": 404,
+                    "validation_error": 400,
+                }
+
+                status_code = status_codes.get(response.errorType, 500)
+
+                return JSONResponse(
+                    status_code=status_code,
+                    content=response.model_dump(),
+                )
+
+            return response
+
+        return wrapper
+    return decorator

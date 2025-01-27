@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
 from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
-from lib.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint
+from lib.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -28,6 +28,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             response_model=TestCreateDTO,
             responses=self.responses,
         )
+        @default_error_handler()
         async def create(request: TestCreateRequest):
             result = self._output_port.create(request=request)
             return result
@@ -37,6 +38,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             response_model=TestGetDTO,
             responses=self.responses,
         )
+        @default_error_handler()
         async def get(id: int):
             result = self._output_port.get(request=TestGetRequest(id=id))
             return result
@@ -46,6 +48,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             response_model=TestListDTO,
             responses=self.responses,
         )
+        @default_error_handler()
         async def list(
                 page: int | None = None,
                 page_size: int | None = None,
@@ -63,6 +66,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             response_model=TestUpdateDTO,
             responses=self.responses,
         )
+        @default_error_handler()
         async def update(request: TestUpdateRequest):
             result = self._output_port.update(request=request)
             return result
@@ -72,6 +76,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             response_model=TestDeleteDTO,
             responses=self.responses,
         )
+        @default_error_handler()
         async def delete(id: int):
             result = self._output_port.delete(
                 request=TestDeleteRequest(id=id),
@@ -143,8 +148,8 @@ class TestFastAPICrudRepositoryEndpoint(TestSetup):
     def test_get_endpoint_not_found(self, test_client, auth_headers):
         response = test_client.get("/api/v1/repository/test-items/999", headers=auth_headers)
         assert response.status_code == 404
-        data = response.json()["detail"]
-        assert data["errorType"] == "not_found"
+        data = response.json()
+        assert data["errorType"] == "not_found_error"
 
     def test_list_endpoint_success(self, test_client, auth_headers):
         test_client.post("/api/v1/repository/test-items", json={"name": "Item 1"}, headers=auth_headers)
