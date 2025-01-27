@@ -133,6 +133,7 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
             instance.update(update_data, session=session)
             session.commit()
             return SuccessDTO(data=instance.to_core_model())
+        # TODO: decompose this exception handling using custom exceptions and a default decorator
         except ValueError as e:
             return BaseError(
                 message=f"Invalid fields in update request: {str(e)}",
@@ -162,10 +163,11 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
                     digest=str(uuid.uuid4()),
                 )
 
+            core_model = instance.to_core_model()
             session.delete(instance)
             session.commit()
 
-            return SuccessDTO(data=instance.to_core_model())
+            return SuccessDTO(data=core_model)
 
         except Exception as e:
             return BaseError(

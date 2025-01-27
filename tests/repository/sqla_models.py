@@ -2,7 +2,8 @@ from lib.infrastructure.repository.sqla.database import Base
 from lib.infrastructure.repository.sqla.models import SoftSqlaModelBase
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
-from tests.repository.models import PrimitiveCoreModel, CategoryCoreModel, ComposedCoreModel
+from tests.repository.models import PrimitiveCoreModel, CategoryCoreModel, ComposedCoreModel, SyllabusCoreModel, \
+    DepartmentCoreModel, AssignmentCoreModel, StudentCoreModel, ComplexCoreModel
 
 
 class PrimitiveSqlaModel(Base, SoftSqlaModelBase):
@@ -48,3 +49,104 @@ class ComposedSqlaModel(Base, SoftSqlaModelBase):
             status=self.status
         )
 
+course_student_association = Table(
+    'course_student',
+    Base.metadata,
+    Column('course_id', Integer, ForeignKey('courses.id')),
+    Column('student_id', Integer, ForeignKey('students.id'))
+)
+
+
+class SyllabusSqlaModel(Base, SoftSqlaModelBase):
+    __tablename__ = "syllabuses"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    content = Column(String)
+    course_id = Column(Integer, ForeignKey("courses.id"), unique=True)
+    course = relationship("ComplexSqlaModel", back_populates="syllabus")
+
+    def to_core_model(self) -> SyllabusCoreModel:
+        return SyllabusCoreModel(
+            id=self.id,
+            name=self.name,
+            content=self.content
+        )
+
+
+class DepartmentSqlaModel(Base, SoftSqlaModelBase):
+    __tablename__ = "departments"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    code = Column(String)
+    courses = relationship("ComplexSqlaModel", back_populates="department")
+
+    def to_core_model(self) -> DepartmentCoreModel:
+        return DepartmentCoreModel(
+            id=self.id,
+            name=self.name,
+            code=self.code
+        )
+
+
+class AssignmentSqlaModel(Base, SoftSqlaModelBase):
+    __tablename__ = "assignments"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    due_date = Column(String)
+    course_id = Column(Integer, ForeignKey("courses.id"))
+    course = relationship("ComplexSqlaModel", back_populates="assignments")
+
+    def to_core_model(self) -> AssignmentCoreModel:
+        return AssignmentCoreModel(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            due_date=self.due_date
+        )
+
+
+class StudentSqlaModel(Base, SoftSqlaModelBase):
+    __tablename__ = "students"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String)
+    courses = relationship("ComplexSqlaModel", secondary=course_student_association, back_populates="enrolled_students")
+
+    def to_core_model(self) -> StudentCoreModel:
+        return StudentCoreModel(
+            id=self.id,
+            name=self.name,
+            email=self.email
+        )
+
+
+class ComplexSqlaModel(Base, SoftSqlaModelBase):
+    __tablename__ = "courses"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String, nullable=True)
+
+    # One-to-one relationship
+    syllabus = relationship("SyllabusSqlaModel", uselist=False, back_populates="course")
+
+    # Many-to-one relationship
+    department_id = Column(Integer, ForeignKey("departments.id"))
+    department = relationship("DepartmentSqlaModel", back_populates="courses")
+
+    # One-to-many relationship
+    assignments = relationship("AssignmentSqlaModel", back_populates="course")
+
+    # Many-to-many relationship
+    enrolled_students = relationship("StudentSqlaModel", secondary=course_student_association, back_populates="courses")
+
+    def to_core_model(self) -> ComplexCoreModel:
+        return ComplexCoreModel(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            syllabus=self.syllabus.to_core_model() if self.syllabus else None,
+            department=self.department.to_core_model() if self.department else None,
+            assignments=[assignment.to_core_model() for assignment in self.assignments],
+            enrolled_students=[student.to_core_model() for student in self.enrolled_students]
+        )
