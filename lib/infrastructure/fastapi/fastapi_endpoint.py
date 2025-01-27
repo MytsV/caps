@@ -74,12 +74,18 @@ class BaseFastAPIEndpoint(ABC):
             return
         if x_auth_token is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
-        if x_auth_token == "test123":
-            # TODO: a not implemented error should be raised
-            # There should be subclasses that implement concrete authentication logic
-            return
-        else:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+        self.authenticate(x_auth_token)
+
+    @abstractmethod
+    def authenticate(self, x_auth_token: str) -> None:
+        raise NotImplementedError("You must implement concrete authentication logic.")
+
+
+def mock_authenticate(x_auth_token: str):
+    if x_auth_token == "test123":
+        return
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
 def default_error_handler():

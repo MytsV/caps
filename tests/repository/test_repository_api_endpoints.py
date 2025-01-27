@@ -1,7 +1,7 @@
 from typing import Dict, Any
 
 from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
-from lib.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler
+from lib.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler, mock_authenticate
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -21,6 +21,9 @@ class TestEndpoint(BaseFastAPIEndpoint):
         super().__init__(descriptor, responses)
         self.prefix += "/repository"
         self._output_port = output_port
+
+    def authenticate(self, x_auth_token: str) -> None:
+        mock_authenticate(x_auth_token)
 
     def register_endpoint(self) -> None:
         @self.router.post(
