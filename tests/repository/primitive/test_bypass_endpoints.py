@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
-from tests.repository.models import TestSetup, TestCreateDTO, TestCreateRequest, TestGetDTO, TestGetRequest, \
-    TestListDTO, TestListRequest, TestUpdateDTO, TestUpdateRequest, TestDeleteDTO, TestDeleteRequest
+from tests.repository.primitive.secondary_entities import TestSetup, PrimitiveCreateDTO, PrimitiveCreateRequest, PrimitiveGetDTO, PrimitiveGetRequest, \
+    PrimitiveListDTO, PrimitiveListRequest, PrimitiveUpdateDTO, PrimitiveUpdateRequest, PrimitiveDeleteDTO, PrimitiveDeleteRequest
 
 
 class TestEndpoint(BaseFastAPIEndpoint):
@@ -28,27 +28,27 @@ class TestEndpoint(BaseFastAPIEndpoint):
     def register_endpoint(self) -> None:
         @self.router.post(
             f"{self.prefix}/{self._name}",
-            response_model=TestCreateDTO,
+            response_model=PrimitiveCreateDTO,
             responses=self.responses,
         )
         @default_error_handler()
-        async def create(request: TestCreateRequest):
+        async def create(request: PrimitiveCreateRequest):
             result = self._output_port.create(request=request)
             return result
 
         @self.router.get(
             f"{self.prefix}/{self._name}/{{id}}",
-            response_model=TestGetDTO,
+            response_model=PrimitiveGetDTO,
             responses=self.responses,
         )
         @default_error_handler()
         async def get(id: int):
-            result = self._output_port.get(request=TestGetRequest(id=id))
+            result = self._output_port.get(request=PrimitiveGetRequest(id=id))
             return result
 
         @self.router.get(
             f"{self.prefix}/{self._name}",
-            response_model=TestListDTO,
+            response_model=PrimitiveListDTO,
             responses=self.responses,
         )
         @default_error_handler()
@@ -57,7 +57,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
                 page_size: int | None = None,
         ):
             result = self._output_port.list(
-                request=TestListRequest(
+                request=PrimitiveListRequest(
                     page=page,
                     page_size=page_size,
                 ),
@@ -66,23 +66,23 @@ class TestEndpoint(BaseFastAPIEndpoint):
 
         @self.router.put(
             f"{self.prefix}/{self._name}",
-            response_model=TestUpdateDTO,
+            response_model=PrimitiveUpdateDTO,
             responses=self.responses,
         )
         @default_error_handler()
-        async def update(request: TestUpdateRequest):
+        async def update(request: PrimitiveUpdateRequest):
             result = self._output_port.update(request=request)
             return result
 
         @self.router.delete(
             f"{self.prefix}/{self._name}/{{id}}",
-            response_model=TestDeleteDTO,
+            response_model=PrimitiveDeleteDTO,
             responses=self.responses,
         )
         @default_error_handler()
         async def delete(id: int):
             result = self._output_port.delete(
-                request=TestDeleteRequest(id=id),
+                request=PrimitiveDeleteRequest(id=id),
             )
             return result
 

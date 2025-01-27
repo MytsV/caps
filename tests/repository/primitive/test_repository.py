@@ -7,23 +7,24 @@ from lib.core.error import BaseError
 import pytest
 
 from lib.core.request import BaseIdentifiedRequest
-from tests.repository.models import TestSqlaModel, TestSetup, TestCreateRequest, \
-    TestGetRequest, TestListRequest, TestUpdateRequest, TestDeleteRequest
+from tests.repository.primitive.secondary_entities import TestSetup, PrimitiveCreateRequest, \
+    PrimitiveGetRequest, PrimitiveListRequest, PrimitiveUpdateRequest, PrimitiveDeleteRequest
+from tests.repository.sqla_models import PrimitiveSqlaModel
 
 
-class TestCreateExtraFieldsRequest(BaseModel):
+class PrimitiveCreateExtraFieldsRequest(BaseModel):
     name: str
     extra_field: str
 
 
-class TestUpdateExtraFieldsRequest(BaseIdentifiedRequest):
+class PrimitiveUpdateExtraFieldsRequest(BaseIdentifiedRequest):
     name: str
     extra_field: str
 
 
-class TestCreateBaseSqlaCrudRepository(TestSetup):
+class TestCreatePrimitiveRepository(TestSetup):
     def test_create_success(self, repository):
-        create_request = TestCreateRequest(name="Test Item")
+        create_request = PrimitiveCreateRequest(name="Test Item")
 
         result = repository.create(create_request)
         print(result)
@@ -33,9 +34,9 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
         assert result.data.id is not None
 
     def test_create_error_handling(self, repository):
-        create_request = TestCreateRequest(name="Test Item")
+        create_request = PrimitiveCreateRequest(name="Test Item")
 
-        with patch.object(TestSqlaModel, "save", side_effect=Exception("Database error")):
+        with patch.object(PrimitiveSqlaModel, "save", side_effect=Exception("Database error")):
             result = repository.create(create_request)
 
         assert isinstance(result, BaseError)
@@ -43,7 +44,7 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
         assert "Database error" in result.message
 
     def test_create_with_extra_fields(self, repository):
-        create_request = TestCreateExtraFieldsRequest(name="Test Item", extra_field="value")
+        create_request = PrimitiveCreateExtraFieldsRequest(name="Test Item", extra_field="value")
 
         result = repository.create(create_request)
 
@@ -51,12 +52,12 @@ class TestCreateBaseSqlaCrudRepository(TestSetup):
         assert result.errorType == "validation_error"
 
 
-class TestGetBaseSqlaCrudRepository(TestSetup):
+class TestGetPrimitiveRepository(TestSetup):
     def test_get_existing(self, repository):
-        create_request = TestCreateRequest(name="Test Item")
+        create_request = PrimitiveCreateRequest(name="Test Item")
         created = repository.create(create_request)
 
-        get_request = TestGetRequest(id=created.data.id)
+        get_request = PrimitiveGetRequest(id=created.data.id)
 
         result = repository.get(get_request)
 
@@ -64,7 +65,7 @@ class TestGetBaseSqlaCrudRepository(TestSetup):
         assert result.data.name == "Test Item"
 
     def test_get_non_existing(self, repository):
-        get_request = TestGetRequest(id=999)
+        get_request = PrimitiveGetRequest(id=999)
 
         result = repository.get(get_request)
 
@@ -72,29 +73,29 @@ class TestGetBaseSqlaCrudRepository(TestSetup):
         assert "not_found_error" in result.errorType
 
 
-class TestListBaseSqlaCrudRepository(TestSetup):
+class TestListPrimitiveRepository(TestSetup):
     def test_list_empty(self, repository):
-        result = repository.list(TestListRequest())
+        result = repository.list(PrimitiveListRequest())
 
         assert isinstance(result, SuccessDTO)
         assert len(result.data) == 0
 
     def test_list_multiple_items(self, repository):
-        repository.create(TestCreateRequest(name="Item 1"))
-        repository.create(TestCreateRequest(name="Item 2"))
+        repository.create(PrimitiveCreateRequest(name="Item 1"))
+        repository.create(PrimitiveCreateRequest(name="Item 2"))
 
-        result = repository.list(TestListRequest())
+        result = repository.list(PrimitiveListRequest())
 
         assert isinstance(result, SuccessDTO)
         assert len(result.data) == 2
         assert {item.name for item in result.data} == {"Item 1", "Item 2"}
 
 
-class TestUpdateBaseSqlaCrudRepository(TestSetup):
+class TestUpdatePrimitiveRepository(TestSetup):
     def test_update_existing(self, repository):
-        created = repository.create(TestCreateRequest(name="Original"))
+        created = repository.create(PrimitiveCreateRequest(name="Original"))
 
-        update_request = TestUpdateRequest(id=created.data.id, name="Updated")
+        update_request = PrimitiveUpdateRequest(id=created.data.id, name="Updated")
 
         result = repository.update(update_request)
 
@@ -102,7 +103,7 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
         assert result.data.name == "Updated"
 
     def test_update_nonexistent(self, repository):
-        update_request = TestUpdateRequest(id=999, name="Updated")
+        update_request = PrimitiveUpdateRequest(id=999, name="Updated")
 
         result = repository.update(update_request)
 
@@ -110,9 +111,9 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
         assert "not_found_error" in result.errorType
 
     def test_update_with_invalid_fields(self, repository):
-        created = repository.create(TestCreateRequest(name="Original"))
+        created = repository.create(PrimitiveCreateRequest(name="Original"))
 
-        update_request = TestUpdateExtraFieldsRequest(
+        update_request = PrimitiveUpdateExtraFieldsRequest(
             id=created.data.id, name="Updated", extra_field="value"
         )
 
@@ -122,23 +123,23 @@ class TestUpdateBaseSqlaCrudRepository(TestSetup):
         assert "validation_error" in result.errorType
 
 
-class TestDeleteBaseSqlaCrudRepository(TestSetup):
+class TestDeletePrimitiveRepository(TestSetup):
     def test_delete_existing(self, repository):
-        created = repository.create(TestCreateRequest(name="To Delete"))
+        created = repository.create(PrimitiveCreateRequest(name="To Delete"))
 
-        delete_request = TestDeleteRequest(id=created.data.id)
+        delete_request = PrimitiveDeleteRequest(id=created.data.id)
 
         result = repository.delete(delete_request)
 
         assert isinstance(result, SuccessDTO)
         assert result.data.id == created.data.id
 
-        get_result = repository.get(TestGetRequest(id=created.data.id))
+        get_result = repository.get(PrimitiveGetRequest(id=created.data.id))
         assert isinstance(get_result, BaseError)
         assert "not_found_error" in get_result.errorType
 
     def test_delete_nonexistent(self, repository):
-        delete_request = TestDeleteRequest(id=999)
+        delete_request = PrimitiveDeleteRequest(id=999)
 
         result = repository.delete(delete_request)
 
@@ -146,10 +147,10 @@ class TestDeleteBaseSqlaCrudRepository(TestSetup):
         assert "not_found_error" in result.errorType
 
     def test_delete_already_deleted(self, repository):
-        created = repository.create(TestCreateRequest(name="To Delete"))
-        first_delete = repository.delete(TestDeleteRequest(id=created.data.id))
+        created = repository.create(PrimitiveCreateRequest(name="To Delete"))
+        first_delete = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
 
-        second_delete = repository.delete(TestDeleteRequest(id=created.data.id))
+        second_delete = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
 
         assert isinstance(second_delete, BaseError)
         assert "not_found_error" in second_delete.errorType
