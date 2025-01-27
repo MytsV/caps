@@ -28,5 +28,3 @@ class BaseCoreModel(BaseModel):
 
 
 TBaseCoreModel = TypeVar("TBaseCoreModel", bound=BaseCoreModel)
-
-TID = TypeVar("TID", str, int)
