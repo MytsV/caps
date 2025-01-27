@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
-from tests.repository.primitive.secondary_entities import TestSetup, PrimitiveCreateDTO, PrimitiveCreateRequest, PrimitiveGetDTO, PrimitiveGetRequest, \
+from tests.repository.primitive.primitive_secondary_entities import PrimitiveTestSetup, PrimitiveCreateDTO, PrimitiveCreateRequest, PrimitiveGetDTO, PrimitiveGetRequest, \
     PrimitiveListDTO, PrimitiveListRequest, PrimitiveUpdateDTO, PrimitiveUpdateRequest, PrimitiveDeleteDTO, PrimitiveDeleteRequest
 
 
@@ -87,7 +87,7 @@ class TestEndpoint(BaseFastAPIEndpoint):
             return result
 
 
-class TestFastAPICrudRepositoryEndpoint(TestSetup):
+class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
     @pytest.fixture
     def app(self):
         return FastAPI()

@@ -7,7 +7,7 @@ from lib.core.error import BaseError
 import pytest
 
 from lib.core.request import BaseIdentifiedRequest
-from tests.repository.primitive.secondary_entities import TestSetup, PrimitiveCreateRequest, \
+from tests.repository.primitive.primitive_secondary_entities import PrimitiveTestSetup, PrimitiveCreateRequest, \
     PrimitiveGetRequest, PrimitiveListRequest, PrimitiveUpdateRequest, PrimitiveDeleteRequest
 from tests.repository.sqla_models import PrimitiveSqlaModel
 
@@ -22,7 +22,7 @@ class PrimitiveUpdateExtraFieldsRequest(BaseIdentifiedRequest):
     extra_field: str
 
 
-class TestCreatePrimitiveRepository(TestSetup):
+class PrimitiveTestCreatePrimitiveRepository(PrimitiveTestSetup):
     def test_create_success(self, repository):
         create_request = PrimitiveCreateRequest(name="Test Item")
 
@@ -52,7 +52,7 @@ class TestCreatePrimitiveRepository(TestSetup):
         assert result.errorType == "validation_error"
 
 
-class TestGetPrimitiveRepository(TestSetup):
+class PrimitiveTestGetPrimitiveRepository(PrimitiveTestSetup):
     def test_get_existing(self, repository):
         create_request = PrimitiveCreateRequest(name="Test Item")
         created = repository.create(create_request)
@@ -73,7 +73,7 @@ class TestGetPrimitiveRepository(TestSetup):
         assert "not_found_error" in result.errorType
 
 
-class TestListPrimitiveRepository(TestSetup):
+class PrimitiveTestListPrimitiveRepository(PrimitiveTestSetup):
     def test_list_empty(self, repository):
         result = repository.list(PrimitiveListRequest())
 
@@ -91,7 +91,7 @@ class TestListPrimitiveRepository(TestSetup):
         assert {item.name for item in result.data} == {"Item 1", "Item 2"}
 
 
-class TestUpdatePrimitiveRepository(TestSetup):
+class PrimitiveTestUpdatePrimitiveRepository(PrimitiveTestSetup):
     def test_update_existing(self, repository):
         created = repository.create(PrimitiveCreateRequest(name="Original"))
 
@@ -123,7 +123,7 @@ class TestUpdatePrimitiveRepository(TestSetup):
         assert "validation_error" in result.errorType
 
 
-class TestDeletePrimitiveRepository(TestSetup):
+class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
     def test_delete_existing(self, repository):
         created = repository.create(PrimitiveCreateRequest(name="To Delete"))
 

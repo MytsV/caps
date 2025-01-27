@@ -79,6 +79,15 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
             )
 
     def list(self, session: Session, request: BaseListRequest) -> TBaseDTO[List[TBaseCoreModel]]:
+        if (request.page is not None and request.page <= 0) or (request.page_size is not None and request.page_size <= 0):
+            return BaseError(
+                message=f"Error listing entities: page and page_size must be greater than 0",
+                name="Error listing entities",
+                errorType="validation_error",
+                context={"page": request.page, "page_size": request.page_size},
+                digest=str(uuid.uuid4()),
+            )
+
         try:
             query = session.query(self._sqla_model)
 

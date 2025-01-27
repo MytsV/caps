@@ -70,7 +70,7 @@ class PrimitiveRepository(DefaultSqlaCrudRepository[PrimitiveCoreModel]):
         return super().delete(session, request)
 
 
-class TestSetup:
+class PrimitiveTestSetup:
     @pytest.fixture(autouse=True)
     def cleanup(self, repository):
         yield
