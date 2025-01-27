@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import patch
 
 from pydantic import BaseModel
