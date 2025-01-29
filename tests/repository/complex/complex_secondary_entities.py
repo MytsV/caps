@@ -7,7 +7,7 @@ from lib.core.error import BaseError, ErrorType
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
 
 from lib.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository, validate_fields
-from lib.core.dto import TBaseDTO, SuccessDTO
+from lib.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO
 from sqlalchemy.orm import Session
 
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
@@ -56,7 +56,7 @@ class ComplexListRequest(BaseListRequest):
 
 ComplexCreateDTO = TBaseDTO[ComplexCoreModel]
 ComplexGetDTO = TBaseDTO[ComplexCoreModel]
-ComplexListDTO = TBaseDTO[List[ComplexCoreModel]]
+ComplexListDTO = TBaseListDTO[List[ComplexCoreModel]]
 ComplexUpdateDTO = TBaseDTO[ComplexCoreModel]
 ComplexDeleteDTO = TBaseDTO[ComplexCoreModel]
 

@@ -1,6 +1,6 @@
 from lib.core.error import exception_handler, ValidationError, DatabaseError, NotFoundError
 from lib.core.models import TBaseCoreModel
-from lib.core.dto import TBaseDTO, SuccessDTO
+from lib.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO, SuccessListDTO
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
 from lib.infrastructure.secondary_ports.base_crud_secondary_ports import (
     BaseCrudOutputPort
@@ -131,7 +131,7 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
             )
 
     @exception_handler()
-    def list(self, session: Session, request: BaseListRequest) -> TBaseDTO[List[TBaseCoreModel]]:
+    def list(self, session: Session, request: BaseListRequest) -> TBaseListDTO[List[TBaseCoreModel]]:
         if (request.page is not None and request.page <= 0) or (request.page_size is not None and request.page_size <= 0):
             raise ValidationError(
                 f"Error listing {self._model_name}: page and page_size must be greater than 0",
@@ -145,12 +145,25 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
                 if field not in ['page', 'page_size'] and value is not None:
                     query = query.filter(getattr(self._sqla_model, field) == value)
 
+            has_next_page = None
+
             if request.page is not None:
                 page_size = request.page_size or DEFAULT_PAGE_SIZE
-                query = query.offset((request.page - 1) * page_size).limit(page_size)
+                offset = (request.page - 1) * page_size
 
-            instances = query.all()
-            return SuccessDTO(data=[instance.to_core_model() for instance in instances])
+                # Fetch one extra record to determine if there's a next page
+                query = query.offset(offset).limit(page_size + 1)
+                results = query.all()
+
+                has_next_page = len(results) > page_size
+                instances = results[:page_size]
+            else:
+                instances = query.all()
+
+            return SuccessListDTO(
+                has_next_page=has_next_page,
+                data=[instance.to_core_model() for instance in instances]
+            )
 
         except Exception as e:
             raise DatabaseError(

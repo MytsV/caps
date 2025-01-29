@@ -18,4 +18,10 @@ class SuccessDTO[T](BaseCoreModel):
     data: T
 
 
+class SuccessListDTO[T](SuccessDTO[T]):
+    has_next_page: bool | None = None
+
+
 type TBaseDTO[T] = SuccessDTO[T] | BaseError
+
+type TBaseListDTO[T] = SuccessListDTO[T] | BaseError

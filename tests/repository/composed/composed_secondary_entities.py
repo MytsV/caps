@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
 
 from lib.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository
-from lib.core.dto import TBaseDTO
+from lib.core.dto import TBaseDTO, TBaseListDTO
 from sqlalchemy.orm import Session
 
 from lib.infrastructure.repository.sqla.utils import sqla_session_context
@@ -16,7 +16,7 @@ from tests.repository.sqla_models import ComposedSqlaModel, CategorySqlaModel
 
 ComposedCreateDTO = TBaseDTO[ComposedCoreModel]
 ComposedGetDTO = TBaseDTO[ComposedCoreModel]
-ComposedListDTO = TBaseDTO[List[ComposedCoreModel]]
+ComposedListDTO = TBaseListDTO[List[ComposedCoreModel]]
 ComposedUpdateDTO = TBaseDTO[ComposedCoreModel]
 ComposedDeleteDTO = TBaseDTO[ComposedCoreModel]
 
