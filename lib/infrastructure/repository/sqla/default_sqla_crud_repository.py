@@ -2,9 +2,7 @@ from lib.core.error import exception_handler, ValidationError, DatabaseError, No
 from lib.core.models import TBaseCoreModel
 from lib.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO, SuccessListDTO
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
-from lib.infrastructure.secondary_ports.base_crud_secondary_ports import (
-    BaseCrudOutputPort
-)
+from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
 from lib.infrastructure.repository.sqla.models import TSoftModelBase
 
 from typing import Generic, List
@@ -47,20 +45,18 @@ def extract_request_data(sqla_model, request_data):
 def handle_relationships(instance, relationship_data, session):
     for request_field, data in relationship_data.items():
         # Find relationship name by removing _id(s) suffix if present
-        relationship_name = request_field.replace('_ids', '').replace('_id', '')
+        relationship_name = request_field.replace("_ids", "").replace("_id", "")
         relationship = instance.__mapper__.relationships[relationship_name]
 
         # Determine if it's an ID-based update
-        is_single_id = request_field.endswith('_id')
-        is_multiple_ids = request_field.endswith('_ids')
+        is_single_id = request_field.endswith("_id")
+        is_multiple_ids = request_field.endswith("_ids")
 
         # Handle many-to-many or one-to-many relationships
         if relationship.secondary is not None or relationship.uselist:
             if is_multiple_ids:
                 related_model = relationship.mapper.class_
-                related_instances = session.query(related_model).filter(
-                    related_model.id.in_(data)
-                ).all()
+                related_instances = session.query(related_model).filter(related_model.id.in_(data)).all()
             else:  # entity data
                 related_instances = [relationship.mapper.class_(**entity) for entity in data]
 
@@ -103,46 +99,40 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
 
         except ValueError as e:
             raise ValidationError(
-                f"Invalid field in {self._model_name} create request: {str(e)}",
-                context={"data": data}
+                f"Invalid field in {self._model_name} create request: {str(e)}", context={"data": data}
             )
         except Exception as e:
             session.rollback()
-            raise DatabaseError(
-                f"Error creating {self._model_name}",
-                context={"original_error": str(e), "data": data}
-            )
+            raise DatabaseError(f"Error creating {self._model_name}", context={"original_error": str(e), "data": data})
 
     @exception_handler()
     def get(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
         instance = session.query(self._sqla_model).get(request.id)
         if not instance:
-            raise NotFoundError(
-                f"{self._model_name} with id {request.id} not found",
-                context={"id": request.id}
-            )
+            raise NotFoundError(f"{self._model_name} with id {request.id} not found", context={"id": request.id})
 
         try:
             return SuccessDTO(data=instance.to_core_model())
         except Exception as e:
             raise DatabaseError(
-                f"Error retrieving {self._model_name}",
-                context={"original_error": str(e), "id": request.id}
+                f"Error retrieving {self._model_name}", context={"original_error": str(e), "id": request.id}
             )
 
     @exception_handler()
     def list(self, session: Session, request: BaseListRequest) -> TBaseListDTO[List[TBaseCoreModel]]:
-        if (request.page is not None and request.page <= 0) or (request.page_size is not None and request.page_size <= 0):
+        if (request.page is not None and request.page <= 0) or (
+            request.page_size is not None and request.page_size <= 0
+        ):
             raise ValidationError(
                 f"Error listing {self._model_name}: page and page_size must be greater than 0",
-                context={"page": request.page, "page_size": request.page_size}
+                context={"page": request.page, "page_size": request.page_size},
             )
 
         try:
             query = session.query(self._sqla_model)
 
             for field, value in request.model_dump().items():
-                if field not in ['page', 'page_size'] and value is not None:
+                if field not in ["page", "page_size"] and value is not None:
                     query = query.filter(getattr(self._sqla_model, field) == value)
 
             has_next_page = None
@@ -161,35 +151,30 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
                 instances = query.all()
 
             return SuccessListDTO(
-                has_next_page=has_next_page,
-                data=[instance.to_core_model() for instance in instances]
+                has_next_page=has_next_page, data=[instance.to_core_model() for instance in instances]
             )
 
         except Exception as e:
             raise DatabaseError(
                 f"Error listing {self._model_name}s",
-                context={"original_error": str(e), "filters": request.model_dump()}
+                context={"original_error": str(e), "filters": request.model_dump()},
             )
 
     @exception_handler()
     def update(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
         instance = session.query(self._sqla_model).get(request.id)
         if not instance:
-            raise NotFoundError(
-                f"{self._model_name} with id {request.id} not found",
-                context={"id": request.id}
-            )
+            raise NotFoundError(f"{self._model_name} with id {request.id} not found", context={"id": request.id})
 
         data = request.model_dump(exclude_none=True)
-        data.pop('id', None)
+        data.pop("id", None)
 
         entity_data, relationship_data = extract_request_data(self._sqla_model, data)
 
         is_valid = validate_fields(self._sqla_model, entity_data)
         if not is_valid:
             raise ValidationError(
-                f"Invalid fields in {self._model_name} update request.",
-                context={"update_data": entity_data}
+                f"Invalid fields in {self._model_name} update request.", context={"update_data": entity_data}
             )
 
         try:
@@ -205,18 +190,14 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
         except Exception as e:
             session.rollback()
             raise DatabaseError(
-                f"Error updating {self._model_name}",
-                context={"original_error": str(e), "id": request.id, "data": data}
+                f"Error updating {self._model_name}", context={"original_error": str(e), "id": request.id, "data": data}
             )
 
     @exception_handler()
     def delete(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
         instance = session.query(self._sqla_model).get(request.id)
         if not instance:
-            raise NotFoundError(
-                f"{self._model_name} with id {request.id} not found",
-                context={"id": request.id}
-            )
+            raise NotFoundError(f"{self._model_name} with id {request.id} not found", context={"id": request.id})
 
         try:
             core_model = instance.to_core_model()
@@ -225,6 +206,5 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
             return SuccessDTO(data=core_model)
         except Exception as e:
             raise DatabaseError(
-                f"Error deleting {self._model_name}",
-                context={"original_error": str(e), "id": request.id}
+                f"Error deleting {self._model_name}", context={"original_error": str(e), "id": request.id}
             )

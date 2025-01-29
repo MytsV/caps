@@ -75,16 +75,18 @@ def exception_handler(digest: str | None = None):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                error_type = getattr(e, 'error_type', ErrorType.UNKNOWN)
-                message = getattr(e, 'message', str(e))
-                context = getattr(e, 'context', {})
+                error_type = getattr(e, "error_type", ErrorType.UNKNOWN)
+                message = getattr(e, "message", str(e))
+                context = getattr(e, "context", {})
 
                 return BaseError(
                     name=type(e).__name__,
                     digest=digest or generate_digest(),
                     message=message,
                     context=context,
-                    error_type=error_type
+                    error_type=error_type,
                 )
+
         return wrapper
+
     return decorator

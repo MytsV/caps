@@ -7,16 +7,27 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
-from tests.repository.primitive.primitive_secondary_entities import PrimitiveTestSetup, PrimitiveCreateDTO, PrimitiveCreateRequest, PrimitiveGetDTO, PrimitiveGetRequest, \
-    PrimitiveListDTO, PrimitiveListRequest, PrimitiveUpdateDTO, PrimitiveUpdateRequest, PrimitiveDeleteDTO, PrimitiveDeleteRequest
+from tests.repository.primitive.primitive_secondary_entities import (
+    PrimitiveTestSetup,
+    PrimitiveCreateDTO,
+    PrimitiveCreateRequest,
+    PrimitiveGetDTO,
+    PrimitiveGetRequest,
+    PrimitiveListDTO,
+    PrimitiveListRequest,
+    PrimitiveUpdateDTO,
+    PrimitiveUpdateRequest,
+    PrimitiveDeleteDTO,
+    PrimitiveDeleteRequest,
+)
 
 
 class TestEndpoint(BaseFastAPIEndpoint):
     def __init__(
-            self,
-            descriptor: BaseEndpointDescriptor,
-            responses: Dict[int | str, dict[str, Any]],
-            output_port: BaseCrudOutputPort,
+        self,
+        descriptor: BaseEndpointDescriptor,
+        responses: Dict[int | str, dict[str, Any]],
+        output_port: BaseCrudOutputPort,
     ) -> None:
         super().__init__(descriptor, responses)
         self.prefix += "/repository"
@@ -53,8 +64,8 @@ class TestEndpoint(BaseFastAPIEndpoint):
         )
         @default_error_handler()
         async def list(
-                page: int | None = None,
-                page_size: int | None = None,
+            page: int | None = None,
+            page_size: int | None = None,
         ):
             result = self._output_port.list(
                 request=PrimitiveListRequest(
@@ -128,9 +139,7 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         return {"X-Auth-Token": "test123"}
 
     def test_create_endpoint_success(self, test_client, auth_headers):
-        response = test_client.post(
-            "/api/v1/repository/test-items", json={"name": "New Item"}, headers=auth_headers
-        )
+        response = test_client.post("/api/v1/repository/test-items", json={"name": "New Item"}, headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["name"] == "New Item"
@@ -192,10 +201,7 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         assert data["data"]["id"] == created_id
 
     def test_unauthorized_access(self, test_client):
-        response = test_client.get(
-            "/api/v1/repository/test-items",
-            headers={}
-        )
+        response = test_client.get("/api/v1/repository/test-items", headers={})
         assert response.status_code == 401
         assert response.json()["detail"] == "Unauthorized"
 

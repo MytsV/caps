@@ -7,8 +7,14 @@ from lib.core.error import BaseError
 import pytest
 
 from lib.core.request import BaseIdentifiedRequest
-from tests.repository.primitive.primitive_secondary_entities import PrimitiveTestSetup, PrimitiveCreateRequest, \
-    PrimitiveGetRequest, PrimitiveListRequest, PrimitiveUpdateRequest, PrimitiveDeleteRequest
+from tests.repository.primitive.primitive_secondary_entities import (
+    PrimitiveTestSetup,
+    PrimitiveCreateRequest,
+    PrimitiveGetRequest,
+    PrimitiveListRequest,
+    PrimitiveUpdateRequest,
+    PrimitiveDeleteRequest,
+)
 from tests.repository.sqla_models import PrimitiveSqlaModel
 
 
@@ -113,9 +119,7 @@ class PrimitiveTestUpdatePrimitiveRepository(PrimitiveTestSetup):
     def test_update_with_invalid_fields(self, repository):
         created = repository.create(PrimitiveCreateRequest(name="Original"))
 
-        update_request = PrimitiveUpdateExtraFieldsRequest(
-            id=created.data.id, name="Updated", extra_field="value"
-        )
+        update_request = PrimitiveUpdateExtraFieldsRequest(id=created.data.id, name="Updated", extra_field="value")
 
         result = repository.update(update_request)
 

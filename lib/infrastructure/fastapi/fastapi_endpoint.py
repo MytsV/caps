@@ -112,4 +112,5 @@ def default_error_handler():
             return response
 
         return wrapper
+
     return decorator

@@ -1,6 +1,13 @@
 from lib.core.dto import SuccessDTO
-from tests.repository.complex.complex_secondary_entities import ComplexTestSetup, ComplexCreateRequest, \
-    SyllabusCreateModel, ComplexGetRequest, ComplexListRequest, ComplexUpdateRequest, ComplexDeleteRequest
+from tests.repository.complex.complex_secondary_entities import (
+    ComplexTestSetup,
+    ComplexCreateRequest,
+    SyllabusCreateModel,
+    ComplexGetRequest,
+    ComplexListRequest,
+    ComplexUpdateRequest,
+    ComplexDeleteRequest,
+)
 
 
 class TestComplexRepository(ComplexTestSetup):
@@ -9,10 +16,7 @@ class TestComplexRepository(ComplexTestSetup):
             name="Python Programming",
             description="Advanced Python course",
             department_id=department.id,
-            syllabus=SyllabusCreateModel(
-                name="Python Syllabus",
-                content="Week 1: Python Basics"
-            )
+            syllabus=SyllabusCreateModel(name="Python Syllabus", content="Week 1: Python Basics"),
         )
         result = repository.create(request)
 
@@ -29,24 +33,22 @@ class TestComplexRepository(ComplexTestSetup):
         assert result.data.name == course.name
 
     def test_list_filter_by_name(self, repository, department):
-        create_result_1 = repository.create(ComplexCreateRequest(
-            name="Target Course",
-            department_id=department.id,
-            syllabus=SyllabusCreateModel(
-                name="Target Syllabus",
-                content="Content"
+        create_result_1 = repository.create(
+            ComplexCreateRequest(
+                name="Target Course",
+                department_id=department.id,
+                syllabus=SyllabusCreateModel(name="Target Syllabus", content="Content"),
             )
-        ))
+        )
         assert isinstance(create_result_1, SuccessDTO)
 
-        create_result_2 = repository.create(ComplexCreateRequest(
-            name="Other Course",
-            department_id=department.id,
-            syllabus=SyllabusCreateModel(
-                name="Other Syllabus",
-                content="Content"
+        create_result_2 = repository.create(
+            ComplexCreateRequest(
+                name="Other Course",
+                department_id=department.id,
+                syllabus=SyllabusCreateModel(name="Other Syllabus", content="Content"),
             )
-        ))
+        )
         assert isinstance(create_result_2, SuccessDTO)
 
         result = repository.list(ComplexListRequest(name="Target Course"))
@@ -56,11 +58,7 @@ class TestComplexRepository(ComplexTestSetup):
         assert result.data[0].name == "Target Course"
 
     def test_update_course(self, repository, course, student):
-        request = ComplexUpdateRequest(
-            id=course.id,
-            name="Updated Course",
-            enrolled_students_ids=[student.id]
-        )
+        request = ComplexUpdateRequest(id=course.id, name="Updated Course", enrolled_students_ids=[student.id])
         result = repository.update(request)
 
         assert isinstance(result, SuccessDTO)
@@ -79,14 +77,13 @@ class TestComplexRepository(ComplexTestSetup):
         assert not isinstance(get_result, SuccessDTO)
 
     def test_list_filter_by_department(self, repository, department):
-        create_result = repository.create(ComplexCreateRequest(
-            name="Department Test Course",
-            department_id=department.id,
-            syllabus=SyllabusCreateModel(
-                name="Test Syllabus",
-                content="Content"
+        create_result = repository.create(
+            ComplexCreateRequest(
+                name="Department Test Course",
+                department_id=department.id,
+                syllabus=SyllabusCreateModel(name="Test Syllabus", content="Content"),
             )
-        ))
+        )
         assert isinstance(create_result, SuccessDTO)
 
         result = repository.list(ComplexListRequest(department_id=department.id))
@@ -96,10 +93,7 @@ class TestComplexRepository(ComplexTestSetup):
         assert all(course.department.id == department.id for course in result.data)
 
     def test_update_assignments(self, repository, course, assignment):
-        request = ComplexUpdateRequest(
-            id=course.id,
-            assignments_ids=[assignment.id]
-        )
+        request = ComplexUpdateRequest(id=course.id, assignments_ids=[assignment.id])
         result = repository.update(request)
 
         assert isinstance(result, SuccessDTO)
@@ -110,10 +104,7 @@ class TestComplexRepository(ComplexTestSetup):
         request = ComplexCreateRequest(
             name="Invalid Course",
             department_id=99999,  # Non-existent department
-            syllabus=SyllabusCreateModel(
-                name="Test Syllabus",
-                content="Content"
-            )
+            syllabus=SyllabusCreateModel(name="Test Syllabus", content="Content"),
         )
         result = repository.create(request)
 

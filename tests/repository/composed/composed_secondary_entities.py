@@ -20,6 +20,7 @@ ComposedListDTO = TBaseListDTO[List[ComposedCoreModel]]
 ComposedUpdateDTO = TBaseDTO[ComposedCoreModel]
 ComposedDeleteDTO = TBaseDTO[ComposedCoreModel]
 
+
 class ComposedCreateRequest(BaseModel):
     name: str
     description: str | None = None
@@ -45,6 +46,7 @@ class ComposedUpdateRequest(BaseIdentifiedRequest):
 class ComposedListRequest(BaseListRequest):
     name: str | None = None
     status: str | None = None
+
 
 class ComposedRepository(DefaultSqlaCrudRepository[ComposedCoreModel]):
     def __init__(self) -> None:

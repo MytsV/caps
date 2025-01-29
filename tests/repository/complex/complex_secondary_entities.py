@@ -14,8 +14,14 @@ from lib.infrastructure.repository.sqla.utils import sqla_session_context
 import pytest
 
 from tests.repository.models import ComplexCoreModel, DepartmentCoreModel, AssignmentCoreModel, StudentCoreModel
-from tests.repository.sqla_models import StudentSqlaModel, AssignmentSqlaModel, SyllabusSqlaModel, ComplexSqlaModel, \
-    DepartmentSqlaModel, course_student_association
+from tests.repository.sqla_models import (
+    StudentSqlaModel,
+    AssignmentSqlaModel,
+    SyllabusSqlaModel,
+    ComplexSqlaModel,
+    DepartmentSqlaModel,
+    course_student_association,
+)
 
 
 class SyllabusCreateModel(BaseModel):
@@ -60,11 +66,14 @@ ComplexListDTO = TBaseListDTO[List[ComplexCoreModel]]
 ComplexUpdateDTO = TBaseDTO[ComplexCoreModel]
 ComplexDeleteDTO = TBaseDTO[ComplexCoreModel]
 
+
 class DepartmentCreateRequest(BaseModel):
     name: str
     code: str
 
+
 DepartmentCreateDTO = TBaseDTO[DepartmentCoreModel]
+
 
 class AssignmentCreateRequest(BaseModel):
     name: str
@@ -72,13 +81,17 @@ class AssignmentCreateRequest(BaseModel):
     due_date: str
     course_id: int
 
+
 AssignmentCreateDTO = TBaseDTO[AssignmentCoreModel]
+
 
 class StudentCreateRequest(BaseModel):
     name: str
     email: str
 
+
 StudentCreateDTO = TBaseDTO[StudentCoreModel]
+
 
 class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
     def __init__(self) -> None:
@@ -181,19 +194,13 @@ class ComplexTestSetup:
 
     @pytest.fixture
     def department(self, department_repository):
-        request = DepartmentCreateRequest(
-            name="Computer Science",
-            code="CS101"
-        )
+        request = DepartmentCreateRequest(name="Computer Science", code="CS101")
         result = department_repository.create(request)
         return result.data
 
     @pytest.fixture
     def student(self, student_repository):
-        request = StudentCreateRequest(
-            name="John Doe",
-            email="john@example.com"
-        )
+        request = StudentCreateRequest(name="John Doe", email="john@example.com")
         result = student_repository.create(request)
         return result.data
 
@@ -203,10 +210,7 @@ class ComplexTestSetup:
             name="Introduction to Programming",
             description="Learn basics of programming",
             department_id=department.id,
-            syllabus=SyllabusCreateModel(
-                name="Programming Syllabus",
-                content="Week 1: Variables..."
-            )
+            syllabus=SyllabusCreateModel(name="Programming Syllabus", content="Week 1: Variables..."),
         )
         result = repository.create(request)
         return result.data
@@ -214,10 +218,7 @@ class ComplexTestSetup:
     @pytest.fixture
     def assignment(self, assignment_repository, course):
         request = AssignmentCreateRequest(
-            name="First Assignment",
-            description="Create Hello World",
-            due_date="2025-02-01",
-            course_id=course.id
+            name="First Assignment", description="Create Hello World", due_date="2025-02-01", course_id=course.id
         )
         result = assignment_repository.create(request)
         return result.data
