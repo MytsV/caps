@@ -1,9 +1,18 @@
-from typing import Callable, Concatenate, Literal
+import hashlib
+import random
+import time
+from enum import Enum
+from functools import wraps
+from typing import Callable, Literal
 
 from lib.core.models import BaseCoreModel
 
-import traceback
-import uuid
+
+class ErrorType(Enum):
+    NOT_FOUND = "not_found"
+    VALIDATION = "validation"
+    DATABASE = "database"
+    UNKNOWN = "unknown"
 
 
 class BaseError(BaseCoreModel):
@@ -26,74 +35,56 @@ class BaseError(BaseCoreModel):
     digest: str
     message: str
     context: object  # TODO: pydantic cannot serialize some objects!
-    errorType: Literal["gateway_endpoint_error"] | Literal["database_error"] | str
+    error_type: ErrorType
 
 
-type TExcFields = Literal[False] | int | str | BaseException
+class NotFoundError(Exception):
+    error_type = ErrorType.NOT_FOUND
+
+    def __init__(self, message: str, context: object = None):
+        self.context = {} if context is None else context
+        self.message = message
 
 
-class BaseCoreException(BaseCoreModel):
-    """
-    An exception class for the project, to represent 'hard' errors and unexpected exceptions.
+class ValidationError(Exception):
+    error_type = ErrorType.VALIDATION
 
-    @param success: The status of the operation, with False meaning 'error'
-    @type success: Literal[False]
-    @param name: A human readable title for the error
-    @type name: str
-    @param digest: A hash that can be used to trace the error in the logs. Users are expected to contact us with the digest id.
-    @type digest: str
-    @param message: A user readable string indicating the error. This should not include secrets or any other information that is not relevant to the end user. This is important to allow bypassing errors from gateways to presenters.
-    @type message: str
-    @param context: A generic object that can be logged on the server side. The fields like type, code (not errorCode, errorType as that is implied) can be included in the context.
-    """
-
-    success: Literal[False] = False
-    exception_source: str
-    name: str
-    digest: str
-    message: str
-    context: object  # TODO: pydantic cannot serialize some objects!
-    errorType: str
+    def __init__(self, message: str, context: object = None):
+        self.context = {} if context is None else context
+        self.message = message
 
 
-type TError = BaseError | BaseCoreException
+class DatabaseError(Exception):
+    error_type = ErrorType.DATABASE
+
+    def __init__(self, message: str, context: object = None):
+        self.context = {} if context is None else context
+        self.message = message
 
 
-def serialize_exception(e: Exception) -> dict[str, TExcFields]:
-    """Convert an exception object into a JSON-serializable dictionary."""
-    return {
-        "type": e.__class__.__name__,
-        "message": str(e),
-        "args": str(e.args),
-        "traceback": f"{traceback.format_exc()}",
-    }
+def generate_digest():
+    timestamp = str(time.time())
+    random_string = str(random.randint(0, 1000000))
+    return hashlib.md5(f"{timestamp}{random_string}".encode()).hexdigest()[:8]
 
 
-type TMethod[O, **P, T] = Callable[Concatenate[O, P], T]
-type TWrappedMethod[O, **P, T] = Callable[Concatenate[O, P], T | BaseCoreException]
-
-
-def exception_handler[O, **P, T](digest: str | None) -> Callable[[TMethod[O, P, T]], TWrappedMethod[O, P, T]]:
-    """
-    A decorator to handle exceptions in methods of a class in a standard way.
-    """
-
-    def decorator(method: TMethod[O, P, T]) -> TWrappedMethod[O, P, T]:
-        def wrapper(self: O, /, *args: P.args, **kwargs: P.kwargs) -> T | BaseCoreException:
+def exception_handler(digest: str | None = None):
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             try:
-                return method(self, *args, **kwargs)
-
+                return func(*args, **kwargs)
             except Exception as e:
+                error_type = getattr(e, 'error_type', ErrorType.UNKNOWN)
+                message = getattr(e, 'message', str(e))
+                context = getattr(e, 'context', {})
 
-                return BaseCoreException(
-                    name="Unexpected Exception",
-                    exception_source=self.__class__.__name__,
-                    digest=digest or str(uuid.uuid4()),
-                    message=f"{e}",
-                    context={"exception_args": e.args, "traceback": f"{traceback.format_exc()}"},
-                    errorType=f"{e.__class__.__name__}",
+                return BaseError(
+                    name=type(e).__name__,
+                    digest=digest or generate_digest(),
+                    message=message,
+                    context=context,
+                    error_type=error_type
                 )
-
         return wrapper
-
     return decorator

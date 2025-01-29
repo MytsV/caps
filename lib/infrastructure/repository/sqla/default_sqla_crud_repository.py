@@ -1,4 +1,4 @@
-from lib.core.error import BaseError
+from lib.core.error import exception_handler, ValidationError, DatabaseError, NotFoundError
 from lib.core.models import TBaseCoreModel
 from lib.core.dto import TBaseDTO, SuccessDTO
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
@@ -8,7 +8,6 @@ from lib.infrastructure.secondary_ports.base_crud_secondary_ports import (
 from lib.infrastructure.repository.sqla.models import TSoftModelBase
 
 from typing import Generic, List
-import uuid
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -26,66 +25,55 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
     def __init__(self, sqla_model: TSoftModelBase) -> None:
         super().__init__()
         self._sqla_model = sqla_model
+        self._model_name = sqla_model.__tablename__ or sqla_model.__name__
 
     def session(self, session: Session) -> Session:
         raise NotImplementedError("You must implement the session method. It should return a session object.")
 
+    @exception_handler()
     def create(self, session: Session, request: BaseModel) -> TBaseDTO[TBaseCoreModel]:
+        data = request.model_dump()
         try:
-            data = request.model_dump()
             instance = self._sqla_model.from_dict(data)
+        except ValueError as e:
+            raise ValidationError(
+                f"Invalid field in {self._model_name} create request: {str(e)}",
+                context={"data": data}
+            )
+
+        try:
             instance.save(session=session)
             session.commit()
             return SuccessDTO(data=instance.to_core_model())
-
-        except ValueError as e:
-            return BaseError(
-                message=f"Invalid field in create request: {str(e)}",
-                name="Invalid field error",
-                errorType="validation_error",
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
         except Exception as e:
-            return BaseError(
-                message=f"Error creating entity: {str(e)}",
-                name="Error creating entity",
-                errorType="database_error",
-                context=e,
-                digest=str(uuid.uuid4()),
+            raise DatabaseError(
+                f"Error creating {self._model_name}",
+                context={"original_error": str(e), "data": data}
             )
 
+    @exception_handler()
     def get(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
-        try:
-            instance = session.query(self._sqla_model).get(request.id)
-            if not instance:
-                return BaseError(
-                    message=f"Entity with id {request.id} not found",
-                    name="Entity not found",
-                    errorType="not_found_error",
-                    context={"id": request.id},
-                    digest=str(uuid.uuid4()),
-                )
-
-            return SuccessDTO(data=instance.to_core_model())
-
-        except Exception as e:
-            return BaseError(
-                message=f"Error retrieving entity: {str(e)}",
-                name="Error retrieving entity",
-                errorType="database_error",
-                context=e,
-                digest=str(uuid.uuid4()),
+        instance = session.query(self._sqla_model).get(request.id)
+        if not instance:
+            raise NotFoundError(
+                f"{self._model_name} with id {request.id} not found",
+                context={"id": request.id}
             )
 
+        try:
+            return SuccessDTO(data=instance.to_core_model())
+        except Exception as e:
+            raise DatabaseError(
+                f"Error retrieving {self._model_name}",
+                context={"original_error": str(e), "id": request.id}
+            )
+
+    @exception_handler()
     def list(self, session: Session, request: BaseListRequest) -> TBaseDTO[List[TBaseCoreModel]]:
         if (request.page is not None and request.page <= 0) or (request.page_size is not None and request.page_size <= 0):
-            return BaseError(
-                message=f"Error listing entities: page and page_size must be greater than 0",
-                name="Error listing entities",
-                errorType="validation_error",
-                context={"page": request.page, "page_size": request.page_size},
-                digest=str(uuid.uuid4()),
+            raise ValidationError(
+                f"Error listing {self._model_name}: page and page_size must be greater than 0",
+                context={"page": request.page, "page_size": request.page_size}
             )
 
         try:
@@ -103,77 +91,56 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
             return SuccessDTO(data=[instance.to_core_model() for instance in instances])
 
         except Exception as e:
-            return BaseError(
-                message=f"Error listing entities: {str(e)}",
-                name="Error listing entities",
-                errorType="database_error",
-                context=e,
-                digest=str(uuid.uuid4()),
+            raise DatabaseError(
+                f"Error listing {self._model_name}s",
+                context={"original_error": str(e), "filters": request.model_dump()}
             )
 
+    @exception_handler()
     def update(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
+        instance = session.query(self._sqla_model).get(request.id)
+        if not instance:
+            raise NotFoundError(
+                f"{self._model_name} with id {request.id} not found",
+                context={"id": request.id}
+            )
+
+        update_data = request.model_dump()
+        update_data.pop('id', None)
+
+        is_valid = validate_fields(self._sqla_model, update_data)
+        if not is_valid:
+            raise ValidationError(
+                f"Invalid fields in {self._model_name} update request.",
+                context={"update_data": update_data}
+            )
+
         try:
-            instance = session.query(self._sqla_model).get(request.id)
-            if not instance:
-                return BaseError(
-                    message=f"Entity with id {request.id} not found",
-                    name="Entity not found",
-                    errorType="not_found_error",
-                    context={"id": request.id},
-                    digest=str(uuid.uuid4()),
-                )
-
-            update_data = request.model_dump()
-            update_data.pop('id', None)
-
-            is_valid = validate_fields(self._sqla_model, update_data)
-            if not is_valid:
-                raise ValueError()
-
             instance.update(update_data, session=session)
             session.commit()
             return SuccessDTO(data=instance.to_core_model())
-        # TODO: decompose this exception handling using custom exceptions and a default decorator
-        except ValueError as e:
-            return BaseError(
-                message=f"Invalid fields in update request: {str(e)}",
-                name="Invalid field error",
-                errorType="validation_error",
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
         except Exception as e:
-            return BaseError(
-                message=f"Error updating entity: {str(e)}",
-                name="Error updating entity",
-                errorType="database_error",
-                context=e,
-                digest=str(uuid.uuid4()),
+            raise DatabaseError(
+                f"Error updating {self._model_name}",
+                context={"original_error": str(e), "id": request.id, "update_data": update_data}
             )
 
+    @exception_handler()
     def delete(self, session: Session, request: BaseIdentifiedRequest) -> TBaseDTO[TBaseCoreModel]:
-        try:
-            instance = session.query(self._sqla_model).get(request.id)
-            if not instance:
-                return BaseError(
-                    message=f"Entity with id {request.id} not found",
-                    name="Entity not found",
-                    errorType="not_found_error",
-                    context={"id": request.id},
-                    digest=str(uuid.uuid4()),
-                )
+        instance = session.query(self._sqla_model).get(request.id)
+        if not instance:
+            raise NotFoundError(
+                f"{self._model_name} with id {request.id} not found",
+                context={"id": request.id}
+            )
 
+        try:
             core_model = instance.to_core_model()
             session.delete(instance)
             session.commit()
-
             return SuccessDTO(data=core_model)
-
         except Exception as e:
-            return BaseError(
-                message=f"Error deleting entity: {str(e)}",
-                name="Error deleting entity",
-                errorType="database_error",
-                context=e,
-                digest=str(uuid.uuid4()),
+            raise DatabaseError(
+                f"Error deleting {self._model_name}",
+                context={"original_error": str(e), "id": request.id}
             )

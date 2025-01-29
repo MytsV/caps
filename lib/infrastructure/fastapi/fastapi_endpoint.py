@@ -102,7 +102,7 @@ def default_error_handler():
                     "validation_error": 400,
                 }
 
-                status_code = status_codes.get(response.errorType, 500)
+                status_code = status_codes.get(response.error_type, 500)
 
                 return JSONResponse(
                     status_code=status_code,

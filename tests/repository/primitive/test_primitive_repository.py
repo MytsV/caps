@@ -40,7 +40,7 @@ class PrimitiveTestCreatePrimitiveRepository(PrimitiveTestSetup):
             result = repository.create(create_request)
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "database_error"
+        assert result.error_type == "database_error"
         assert "Database error" in result.message
 
     def test_create_with_extra_fields(self, repository):
@@ -49,7 +49,7 @@ class PrimitiveTestCreatePrimitiveRepository(PrimitiveTestSetup):
         result = repository.create(create_request)
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "validation_error"
+        assert result.error_type == "validation_error"
 
 
 class PrimitiveTestGetPrimitiveRepository(PrimitiveTestSetup):
@@ -70,7 +70,7 @@ class PrimitiveTestGetPrimitiveRepository(PrimitiveTestSetup):
         result = repository.get(get_request)
 
         assert isinstance(result, BaseError)
-        assert "not_found_error" in result.errorType
+        assert "not_found_error" in result.error_type
 
 
 class PrimitiveTestListPrimitiveRepository(PrimitiveTestSetup):
@@ -108,7 +108,7 @@ class PrimitiveTestUpdatePrimitiveRepository(PrimitiveTestSetup):
         result = repository.update(update_request)
 
         assert isinstance(result, BaseError)
-        assert "not_found_error" in result.errorType
+        assert "not_found_error" in result.error_type
 
     def test_update_with_invalid_fields(self, repository):
         created = repository.create(PrimitiveCreateRequest(name="Original"))
@@ -120,7 +120,7 @@ class PrimitiveTestUpdatePrimitiveRepository(PrimitiveTestSetup):
         result = repository.update(update_request)
 
         assert isinstance(result, BaseError)
-        assert "validation_error" in result.errorType
+        assert "validation_error" in result.error_type
 
 
 class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
@@ -136,7 +136,7 @@ class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
 
         get_result = repository.get(PrimitiveGetRequest(id=created.data.id))
         assert isinstance(get_result, BaseError)
-        assert "not_found_error" in get_result.errorType
+        assert "not_found_error" in get_result.error_type
 
     def test_delete_nonexistent(self, repository):
         delete_request = PrimitiveDeleteRequest(id=999)
@@ -144,7 +144,7 @@ class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
         result = repository.delete(delete_request)
 
         assert isinstance(result, BaseError)
-        assert "not_found_error" in result.errorType
+        assert "not_found_error" in result.error_type
 
     def test_delete_already_deleted(self, repository):
         created = repository.create(PrimitiveCreateRequest(name="To Delete"))
@@ -153,4 +153,4 @@ class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
         second_delete = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
 
         assert isinstance(second_delete, BaseError)
-        assert "not_found_error" in second_delete.errorType
+        assert "not_found_error" in second_delete.error_type

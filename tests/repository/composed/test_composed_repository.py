@@ -1,5 +1,5 @@
 from lib.core.dto import SuccessDTO
-from lib.core.error import BaseError
+from lib.core.error import BaseError, ErrorType
 from tests.repository.composed.composed_secondary_entities import ComposedCreateRequest, ComposedListRequest, \
     ComposedTestSetup
 
@@ -96,7 +96,7 @@ class TestComposedListPaginationValidation(ComposedTestSetup):
         result = repository.list(ComposedListRequest(page=-1))
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "validation_error"
+        assert result.error_type == ErrorType.VALIDATION
         assert "page" in result.context
         assert result.context["page"] == -1
 
@@ -104,7 +104,7 @@ class TestComposedListPaginationValidation(ComposedTestSetup):
         result = repository.list(ComposedListRequest(page=0))
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "validation_error"
+        assert result.error_type == ErrorType.VALIDATION
         assert "page" in result.context
         assert result.context["page"] == 0
 
@@ -112,7 +112,7 @@ class TestComposedListPaginationValidation(ComposedTestSetup):
         result = repository.list(ComposedListRequest(page=1, page_size=0))
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "validation_error"
+        assert result.error_type == ErrorType.VALIDATION
         assert "page_size" in result.context
         assert result.context["page_size"] == 0
 
@@ -120,7 +120,7 @@ class TestComposedListPaginationValidation(ComposedTestSetup):
         result = repository.list(ComposedListRequest(page=1, page_size=-10))
 
         assert isinstance(result, BaseError)
-        assert result.errorType == "validation_error"
+        assert result.error_type == ErrorType.VALIDATION
         assert "page_size" in result.context
         assert result.context["page_size"] == -10
 

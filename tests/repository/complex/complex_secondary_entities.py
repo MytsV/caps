@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from lib.core.error import BaseError
+from lib.core.error import BaseError, ErrorType
 from lib.core.request import BaseIdentifiedRequest, BaseListRequest
 
 from lib.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository, validate_fields
@@ -28,6 +28,7 @@ class ComplexCreateRequest(BaseModel):
     description: Optional[str] = None
     department_id: int
     syllabus: SyllabusCreateModel
+    source_data_ids: Optional[List[int]] = None
 
 
 class ComplexGetRequest(BaseIdentifiedRequest):
@@ -105,7 +106,7 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
             return BaseError(
                 message=f"Invalid field in create request: {str(e)}",
                 name="Invalid field error",
-                errorType="validation_error",
+                error_type=ErrorType.VALIDATION,
                 context=e,
                 digest=str(uuid.uuid4()),
             )
@@ -114,7 +115,7 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
             return BaseError(
                 message=f"Error creating complex entity: {str(e)}",
                 name="Error creating entity",
-                errorType="database_error",
+                error_type=ErrorType.DATABASE,
                 context=e,
                 digest=str(uuid.uuid4()),
             )
@@ -160,7 +161,7 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
             return BaseError(
                 message=f"Invalid field in update request: {str(e)}",
                 name="Invalid field error",
-                errorType="validation_error",
+                error_type=ErrorType.VALIDATION,
                 context=e,
                 digest=str(uuid.uuid4()),
             )
@@ -169,7 +170,7 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
             return BaseError(
                 message=f"Error updating complex entity: {str(e)}",
                 name="Error updating entity",
-                errorType="database_error",
+                error_type=ErrorType.DATABASE,
                 context=e,
                 digest=str(uuid.uuid4()),
             )
