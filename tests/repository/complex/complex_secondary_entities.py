@@ -44,8 +44,8 @@ class ComplexUpdateRequest(BaseIdentifiedRequest):
     description: Optional[str] = None
     department_id: Optional[int] = None
     status: Optional[str] = None
-    assignment_ids: Optional[List[int]] = None
-    student_ids: Optional[List[int]] = None
+    assignments_ids: Optional[List[int]] = None
+    enrolled_students_ids: Optional[List[int]] = None
 
 
 class ComplexListRequest(BaseListRequest):
@@ -90,90 +90,11 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel]):
 
     @sqla_session_context()
     def create(self, session: Session, request: ComplexCreateRequest) -> ComplexCreateDTO:
-        try:
-            data = request.model_dump()
-            syllabus_data = data.pop('syllabus')
-
-            instance = self._sqla_model.from_dict(data)
-            instance.save(session=session)
-
-            syllabus = SyllabusSqlaModel(**syllabus_data, course_id=instance.id)
-            session.add(syllabus)
-
-            session.commit()
-            return SuccessDTO(data=instance.to_core_model())
-        except ValueError as e:
-            return BaseError(
-                message=f"Invalid field in create request: {str(e)}",
-                name="Invalid field error",
-                error_type=ErrorType.VALIDATION,
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
-        except Exception as e:
-            session.rollback()
-            return BaseError(
-                message=f"Error creating complex entity: {str(e)}",
-                name="Error creating entity",
-                error_type=ErrorType.DATABASE,
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
+        return super().create(session, request)
 
     @sqla_session_context()
     def update(self, session: Session, request: ComplexUpdateRequest) -> ComplexUpdateDTO:
-        try:
-            instance = session.query(self._sqla_model).get(request.id)
-            if not instance:
-                return BaseError(
-                    message=f"Entity with id {request.id} not found",
-                    name="Entity not found",
-                    errorType="not_found_error",
-                    context={"id": request.id},
-                    digest=str(uuid.uuid4()),
-                )
-
-            update_data = request.model_dump(exclude_none=True)
-            update_data.pop('id', None)
-
-            # Handle assignments if provided
-            if assignment_ids := update_data.pop('assignment_ids', None):
-                assignments = session.query(AssignmentSqlaModel).filter(
-                    AssignmentSqlaModel.id.in_(assignment_ids)
-                ).all()
-                instance.assignments = assignments
-
-            # Handle students if provided
-            if student_ids := update_data.pop('student_ids', None):
-                students = session.query(StudentSqlaModel).filter(
-                    StudentSqlaModel.id.in_(student_ids)
-                ).all()
-                instance.enrolled_students = students
-
-            is_valid = validate_fields(self._sqla_model, update_data)
-            if not is_valid:
-                raise ValueError()
-
-            instance.update(update_data, session=session)
-            session.commit()
-            return SuccessDTO(data=instance.to_core_model())
-        except ValueError as e:
-            return BaseError(
-                message=f"Invalid field in update request: {str(e)}",
-                name="Invalid field error",
-                error_type=ErrorType.VALIDATION,
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
-        except Exception as e:
-            session.rollback()
-            return BaseError(
-                message=f"Error updating complex entity: {str(e)}",
-                name="Error updating entity",
-                error_type=ErrorType.DATABASE,
-                context=e,
-                digest=str(uuid.uuid4()),
-            )
+        return super().update(session, request)
 
     @sqla_session_context()
     def get(self, session: Session, request: ComplexGetRequest) -> ComplexGetDTO:

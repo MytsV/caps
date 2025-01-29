@@ -59,7 +59,7 @@ class TestComplexRepository(ComplexTestSetup):
         request = ComplexUpdateRequest(
             id=course.id,
             name="Updated Course",
-            student_ids=[student.id]
+            enrolled_students_ids=[student.id]
         )
         result = repository.update(request)
 
@@ -98,7 +98,7 @@ class TestComplexRepository(ComplexTestSetup):
     def test_update_assignments(self, repository, course, assignment):
         request = ComplexUpdateRequest(
             id=course.id,
-            assignment_ids=[assignment.id]
+            assignments_ids=[assignment.id]
         )
         result = repository.update(request)
 

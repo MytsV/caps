@@ -21,6 +21,62 @@ def validate_fields(model_class, update_data: dict) -> bool:
     return True
 
 
+def extract_request_data(sqla_model, request_data):
+    entity_data = {}
+    relationship_data = {}
+
+    for column in sqla_model.__mapper__.columns:
+        key = column.key
+        if key in request_data:
+            entity_data[key] = request_data[key]
+
+    for name, relationship in sqla_model.__mapper__.relationships.items():
+        single_id_name = f"{name}_id"
+        multiple_ids_name = f"{name}_ids"
+
+        if name in request_data:
+            relationship_data[name] = request_data[name]
+        elif single_id_name in request_data:
+            relationship_data[single_id_name] = request_data[single_id_name]
+        elif multiple_ids_name in request_data:
+            relationship_data[multiple_ids_name] = request_data[multiple_ids_name]
+
+    return entity_data, relationship_data
+
+
+def handle_relationships(instance, relationship_data, session):
+    for request_field, data in relationship_data.items():
+        # Find relationship name by removing _id(s) suffix if present
+        relationship_name = request_field.replace('_ids', '').replace('_id', '')
+        relationship = instance.__mapper__.relationships[relationship_name]
+
+        # Determine if it's an ID-based update
+        is_single_id = request_field.endswith('_id')
+        is_multiple_ids = request_field.endswith('_ids')
+
+        # Handle many-to-many or one-to-many relationships
+        if relationship.secondary is not None or relationship.uselist:
+            if is_multiple_ids:
+                related_model = relationship.mapper.class_
+                related_instances = session.query(related_model).filter(
+                    related_model.id.in_(data)
+                ).all()
+            else:  # entity data
+                related_instances = [relationship.mapper.class_(**entity) for entity in data]
+
+            setattr(instance, relationship_name, related_instances)
+
+        # Handle one-to-one or many-to-one relationships
+        else:
+            if is_single_id:
+                related_model = relationship.mapper.class_
+                related_instance = session.query(related_model).get(data)
+            else:  # entity data
+                related_instance = relationship.mapper.class_(**data)
+
+            setattr(instance, relationship_name, related_instance)
+
+
 class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreModel]):
     def __init__(self, sqla_model: TSoftModelBase) -> None:
         super().__init__()
@@ -33,19 +89,25 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
     @exception_handler()
     def create(self, session: Session, request: BaseModel) -> TBaseDTO[TBaseCoreModel]:
         data = request.model_dump()
+        entity_data, relationship_data = extract_request_data(self._sqla_model, data)
+
         try:
-            instance = self._sqla_model.from_dict(data)
+            instance = self._sqla_model.from_dict(entity_data)
+            instance.save(session=session)
+
+            if relationship_data:
+                handle_relationships(instance, relationship_data, session)
+
+            session.commit()
+            return SuccessDTO(data=instance.to_core_model())
+
         except ValueError as e:
             raise ValidationError(
                 f"Invalid field in {self._model_name} create request: {str(e)}",
                 context={"data": data}
             )
-
-        try:
-            instance.save(session=session)
-            session.commit()
-            return SuccessDTO(data=instance.to_core_model())
         except Exception as e:
+            session.rollback()
             raise DatabaseError(
                 f"Error creating {self._model_name}",
                 context={"original_error": str(e), "data": data}
@@ -105,24 +167,33 @@ class DefaultSqlaCrudRepository(BaseCrudOutputPort[Session], Generic[TBaseCoreMo
                 context={"id": request.id}
             )
 
-        update_data = request.model_dump()
-        update_data.pop('id', None)
+        data = request.model_dump(exclude_none=True)
+        data.pop('id', None)
 
-        is_valid = validate_fields(self._sqla_model, update_data)
+        entity_data, relationship_data = extract_request_data(self._sqla_model, data)
+
+        is_valid = validate_fields(self._sqla_model, entity_data)
         if not is_valid:
             raise ValidationError(
                 f"Invalid fields in {self._model_name} update request.",
-                context={"update_data": update_data}
+                context={"update_data": entity_data}
             )
 
         try:
-            instance.update(update_data, session=session)
+            # Update regular fields
+            instance.update(entity_data, session=session)
+
+            # Handle relationships if any exist
+            if relationship_data:
+                handle_relationships(instance, relationship_data, session)
+
             session.commit()
             return SuccessDTO(data=instance.to_core_model())
         except Exception as e:
+            session.rollback()
             raise DatabaseError(
                 f"Error updating {self._model_name}",
-                context={"original_error": str(e), "id": request.id, "update_data": update_data}
+                context={"original_error": str(e), "id": request.id, "data": data}
             )
 
     @exception_handler()
