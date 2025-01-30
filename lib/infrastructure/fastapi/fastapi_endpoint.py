@@ -96,10 +96,10 @@ def default_error_handler():
 
             if isinstance(response, BaseError):
                 status_codes = {
-                    "gateway_endpoint_error": 502,
-                    "database_error": 503,
-                    "not_found_error": 404,
-                    "validation_error": 400,
+                    "gateway_endpoint": 502,
+                    "database": 503,
+                    "not_found": 404,
+                    "validation": 400,
                 }
 
                 status_code = status_codes.get(response.error_type, 500)
