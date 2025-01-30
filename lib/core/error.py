@@ -8,7 +8,7 @@ from typing import Callable, Literal
 from lib.core.models import BaseCoreModel
 
 
-class ErrorType(Enum):
+class ErrorType(str, Enum):
     NOT_FOUND = "not_found"
     VALIDATION = "validation"
     DATABASE = "database"
