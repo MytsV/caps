@@ -1,7 +1,7 @@
 from typing import Literal, TypeVar
 
-from lib.core.models import BaseCoreModel
-from lib.core.error import BaseError
+from lib.sdk.core.models import BaseCoreModel
+from lib.sdk.core.error import BaseError
 
 
 class SuccessDTO[T](BaseCoreModel):

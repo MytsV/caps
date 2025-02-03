@@ -11,8 +11,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import mapped_column, object_mapper, MappedColumn
 from sqlalchemy.orm.session import Session
 
-from lib.core.models import TBaseCoreModel
-from lib.infrastructure.repository.sqla.database import Base
+from lib.sdk.core.models import TBaseCoreModel
+from lib.sdk.infrastructure.repository.sqla.database import Base
 
 
 class SqlaModelBase(object):

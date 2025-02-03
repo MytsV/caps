@@ -1,9 +1,9 @@
-from lib.core.error import exception_handler, ValidationError, DatabaseError, NotFoundError
-from lib.core.models import TBaseCoreModel
-from lib.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO, SuccessListDTO
-from lib.core.request import BaseIdentifiedRequest, BaseListRequest
-from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
-from lib.infrastructure.repository.sqla.models import TSoftModelBase
+from lib.sdk.core.error import exception_handler, ValidationError, DatabaseError, NotFoundError
+from lib.sdk.core.models import TBaseCoreModel
+from lib.sdk.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO, SuccessListDTO
+from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
+from lib.sdk.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
+from lib.sdk.infrastructure.repository.sqla.models import TSoftModelBase
 
 from typing import Generic, List
 from sqlalchemy.orm import Session

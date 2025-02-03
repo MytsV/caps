@@ -3,14 +3,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from lib.core.error import BaseError, ErrorType
-from lib.core.request import BaseIdentifiedRequest, BaseListRequest
+from lib.sdk.core.error import BaseError, ErrorType
+from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
 
-from lib.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository, validate_fields
-from lib.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO
+from lib.sdk.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository, validate_fields
+from lib.sdk.core.dto import TBaseDTO, SuccessDTO, TBaseListDTO
 from sqlalchemy.orm import Session
 
-from lib.infrastructure.repository.sqla.utils import sqla_session_context
+from lib.sdk.infrastructure.repository.sqla.utils import sqla_session_context
 import pytest
 
 from tests.repository.models import ComplexCoreModel, DepartmentCoreModel, AssignmentCoreModel, StudentCoreModel

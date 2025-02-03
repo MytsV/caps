@@ -4,7 +4,7 @@ from yaml import dump
 
 import pytest
 
-from lib.infrastructure.repository.sqla.utils import get_database_config
+from lib.sdk.infrastructure.repository.sqla.utils import get_database_config
 
 
 class TestGetDatabaseConfig:

@@ -5,7 +5,7 @@ from enum import Enum
 from functools import wraps
 from typing import Callable, Literal
 
-from lib.core.models import BaseCoreModel
+from lib.sdk.core.models import BaseCoreModel
 
 
 class ErrorType(str, Enum):

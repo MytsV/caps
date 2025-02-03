@@ -1,14 +1,14 @@
 from abc import abstractmethod
 from typing import Generic, TypeVar
-from lib.core.dto import TBaseDTO
-from lib.core.primary_ports import BaseInputPort
-from lib.core.usecase_models import (
+from lib.sdk.core.dto import TBaseDTO
+from lib.sdk.core.primary_ports import BaseInputPort
+from lib.sdk.core.usecase_models import (
     TBaseRequestModelOrBaseAuthenticatedRequestModel,
     TBaseErrorResponseModel,
     TBaseRequestModel,
     TBaseResponseModel,
 )
-from lib.core.view_model import TBaseViewModel
+from lib.sdk.core.view_model import TBaseViewModel
 
 T = TypeVar("T")
 

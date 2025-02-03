@@ -1,7 +1,7 @@
 from typing import Any
-from lib.core.primary_ports import BaseInputPort, BaseOutputPort
-from lib.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
-from lib.core.view_model import BaseViewModel
+from lib.sdk.core.primary_ports import BaseInputPort, BaseOutputPort
+from lib.sdk.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
+from lib.sdk.core.view_model import BaseViewModel
 
 
 class ResponseModel(BaseResponseModel):

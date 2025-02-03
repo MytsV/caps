@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from yaml import load, Loader
 from pydantic import BaseModel
 
-from lib.infrastructure.repository.sqla.database import Database
+from lib.sdk.infrastructure.repository.sqla.database import Database
 
 
 Param = ParamSpec("Param")

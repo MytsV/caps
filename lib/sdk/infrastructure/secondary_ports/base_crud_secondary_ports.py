@@ -3,9 +3,9 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
-from lib.core.bac import BaseAbstractClass
-from lib.core.dto import TBaseDTO
-from lib.core.request import BaseIdentifiedRequest, BaseListRequest
+from lib.sdk.core.bac import BaseAbstractClass
+from lib.sdk.core.dto import TBaseDTO
+from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
 
 TSession = TypeVar("TSession")
 

@@ -1,12 +1,12 @@
 from typing import Dict, Any
 
-from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
-from lib.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler, mock_authenticate
+from lib.sdk.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
+from lib.sdk.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler, mock_authenticate
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from lib.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
+from lib.sdk.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
 from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveTestSetup,
     PrimitiveCreateDTO,

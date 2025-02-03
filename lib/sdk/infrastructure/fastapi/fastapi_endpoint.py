@@ -7,8 +7,8 @@ from functools import wraps
 from typing import Callable
 from fastapi.responses import JSONResponse
 
-from lib.core.error import BaseError
-from lib.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
+from lib.sdk.core.error import BaseError
+from lib.sdk.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
 
 logger = logging.getLogger(__name__)
 

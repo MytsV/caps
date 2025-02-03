@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from lib.core.models import BaseCoreModel
+from lib.sdk.core.models import BaseCoreModel
 
 
 class PrimitiveCoreModel(BaseCoreModel):

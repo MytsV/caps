@@ -1,5 +1,5 @@
-from lib.core.dto import SuccessDTO, SuccessListDTO
-from lib.core.error import BaseError, ErrorType
+from lib.sdk.core.dto import SuccessDTO, SuccessListDTO
+from lib.sdk.core.error import BaseError, ErrorType
 from tests.repository.composed.composed_secondary_entities import (
     ComposedCreateRequest,
     ComposedListRequest,

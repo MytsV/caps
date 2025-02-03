@@ -1,4 +1,4 @@
-from lib.core.dto import SuccessDTO
+from lib.sdk.core.dto import SuccessDTO
 from tests.repository.complex.complex_secondary_entities import (
     ComplexTestSetup,
     ComplexCreateRequest,

@@ -2,9 +2,9 @@ from abc import abstractmethod
 from typing import Generic
 
 from pydantic import ValidationError
-from lib.core.primary_ports import BaseOutputPort
-from lib.core.usecase_models import TBaseErrorResponseModel, TBaseResponseModel, BaseErrorResponseModel
-from lib.core.view_model import TBaseViewModel
+from lib.sdk.core.primary_ports import BaseOutputPort
+from lib.sdk.core.usecase_models import TBaseErrorResponseModel, TBaseResponseModel, BaseErrorResponseModel
+from lib.sdk.core.view_model import TBaseViewModel
 
 
 class BasePresenter(

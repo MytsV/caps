@@ -2,17 +2,17 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
-from lib.infrastructure.presenter import BasePresenter
-from lib.core.usecase import BaseUseCase
+from lib.sdk.infrastructure.presenter import BasePresenter
+from lib.sdk.core.usecase import BaseUseCase
 
-from lib.core.usecase_models import (
+from lib.sdk.core.usecase_models import (
     TBaseRequestModel,
     TBaseErrorResponseModel,
     TBaseRequestModel,
     TBaseResponseModel,
     BaseErrorResponseModel,
 )
-from lib.core.view_model import TBaseViewModel
+from lib.sdk.core.view_model import TBaseViewModel
 
 
 class BaseControllerParameters(BaseModel):

@@ -1,12 +1,12 @@
 from abc import abstractmethod
 from typing import Generic
-from lib.core.bac import BaseAbstractClass
-from lib.core.usecase_models import (
+from lib.sdk.core.bac import BaseAbstractClass
+from lib.sdk.core.usecase_models import (
     TBaseErrorResponseModel,
     TBaseRequestModel,
     TBaseResponseModel,
 )
-from lib.core.view_model import TBaseViewModel
+from lib.sdk.core.view_model import TBaseViewModel
 
 
 class BaseInputPort(BaseAbstractClass, Generic[TBaseRequestModel, TBaseResponseModel, TBaseErrorResponseModel]):

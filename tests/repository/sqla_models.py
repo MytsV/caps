@@ -1,5 +1,5 @@
-from lib.infrastructure.repository.sqla.database import Base
-from lib.infrastructure.repository.sqla.models import SoftSqlaModelBase
+from lib.sdk.infrastructure.repository.sqla.database import Base
+from lib.sdk.infrastructure.repository.sqla.models import SoftSqlaModelBase
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
 from tests.repository.models import (

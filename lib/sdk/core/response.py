@@ -8,7 +8,7 @@ This module defines the PresenterResponse class.
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-from lib.core.view_model import BaseViewModel, TBaseViewModel
+from lib.sdk.core.view_model import BaseViewModel, TBaseViewModel
 
 
 class PresenterResponse(ABC, Generic[TBaseViewModel]):

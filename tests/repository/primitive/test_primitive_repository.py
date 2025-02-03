@@ -2,11 +2,11 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 
-from lib.core.dto import SuccessDTO
-from lib.core.error import BaseError
+from lib.sdk.core.dto import SuccessDTO
+from lib.sdk.core.error import BaseError
 import pytest
 
-from lib.core.request import BaseIdentifiedRequest
+from lib.sdk.core.request import BaseIdentifiedRequest
 from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveTestSetup,
     PrimitiveCreateRequest,
