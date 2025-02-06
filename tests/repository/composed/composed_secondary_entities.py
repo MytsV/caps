@@ -50,7 +50,16 @@ class ComposedListRequest(BaseListRequest):
     status: str | None = None
 
 
-class ComposedRepository(DefaultSqlaCrudRepository[ComposedCoreModel, ComposedCreateRequest, ComposedGetRequest, ComposedListRequest, ComposedUpdateRequest, ComposedDeleteRequest]):
+class ComposedRepository(
+    DefaultSqlaCrudRepository[
+        ComposedCoreModel,
+        ComposedCreateRequest,
+        ComposedGetRequest,
+        ComposedListRequest,
+        ComposedUpdateRequest,
+        ComposedDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -95,7 +104,16 @@ class CategoryListRequest(BaseListRequest):
     pass
 
 
-class CategoryRepository(DefaultSqlaCrudRepository[CategoryCoreModel, CategoryCreateRequest, CategoryGetRequest, CategoryListRequest, CategoryUpdateRequest, CategoryDeleteRequest]):
+class CategoryRepository(
+    DefaultSqlaCrudRepository[
+        CategoryCoreModel,
+        CategoryCreateRequest,
+        CategoryGetRequest,
+        CategoryListRequest,
+        CategoryUpdateRequest,
+        CategoryDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -120,7 +138,9 @@ class CategoryRepository(DefaultSqlaCrudRepository[CategoryCoreModel, CategoryCr
 
 class ComposedTestSetup:
     @pytest.fixture(autouse=True)
-    def cleanup(self, repository: ComposedRepository, category_repository: CategoryRepository) -> Generator[None, None, None]:
+    def cleanup(
+        self, repository: ComposedRepository, category_repository: CategoryRepository
+    ) -> Generator[None, None, None]:
         yield
         session = repository.session()
         session.query(ComposedSqlaModel).delete()

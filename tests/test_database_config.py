@@ -120,4 +120,3 @@ class TestGetDatabaseConfig:
         with pytest.raises(KeyError) as exc_info:
             get_database_config(temp_config_file)
         assert "required" in str(exc_info.value)
-

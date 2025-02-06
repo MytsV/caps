@@ -42,14 +42,16 @@ class PrimitiveListRequest(BaseListRequest):
     pass
 
 
-class PrimitiveRepository(DefaultSqlaCrudRepository[
-                              PrimitiveCoreModel,
-                              PrimitiveCreateRequest,
-                              PrimitiveGetRequest,
-                              PrimitiveListRequest,
-                              PrimitiveUpdateRequest,
-                              PrimitiveDeleteRequest
-                          ]):
+class PrimitiveRepository(
+    DefaultSqlaCrudRepository[
+        PrimitiveCoreModel,
+        PrimitiveCreateRequest,
+        PrimitiveGetRequest,
+        PrimitiveListRequest,
+        PrimitiveUpdateRequest,
+        PrimitiveDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:

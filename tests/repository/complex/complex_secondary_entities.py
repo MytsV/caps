@@ -65,27 +65,33 @@ ComplexListDTO = TBaseListDTO[List[ComplexCoreModel]]
 ComplexUpdateDTO = TBaseDTO[ComplexCoreModel]
 ComplexDeleteDTO = TBaseDTO[ComplexCoreModel]
 
+
 # Request Types for Department
 class DepartmentCreateRequest(BaseModel):
     name: str
     code: str
     status: str = "active"
 
+
 class DepartmentGetRequest(BaseIdentifiedRequest):
     pass
 
+
 class DepartmentDeleteRequest(BaseIdentifiedRequest):
     pass
+
 
 class DepartmentUpdateRequest(BaseIdentifiedRequest):
     name: str | None = None
     code: str | None = None
     status: str | None = None
 
+
 class DepartmentListRequest(BaseListRequest):
     name: str | None = None
     code: str | None = None
     status: str | None = None
+
 
 # DTO Types for Department
 DepartmentCreateDTO = TBaseDTO[DepartmentCoreModel]
@@ -93,6 +99,7 @@ DepartmentGetDTO = TBaseDTO[DepartmentCoreModel]
 DepartmentListDTO = TBaseListDTO[List[DepartmentCoreModel]]
 DepartmentUpdateDTO = TBaseDTO[DepartmentCoreModel]
 DepartmentDeleteDTO = TBaseDTO[DepartmentCoreModel]
+
 
 # Request Types for Assignment
 class AssignmentCreateRequest(BaseModel):
@@ -102,11 +109,14 @@ class AssignmentCreateRequest(BaseModel):
     course_id: int
     status: str = "active"
 
+
 class AssignmentGetRequest(BaseIdentifiedRequest):
     pass
 
+
 class AssignmentDeleteRequest(BaseIdentifiedRequest):
     pass
+
 
 class AssignmentUpdateRequest(BaseIdentifiedRequest):
     name: str | None = None
@@ -115,10 +125,12 @@ class AssignmentUpdateRequest(BaseIdentifiedRequest):
     course_id: int | None = None
     status: str | None = None
 
+
 class AssignmentListRequest(BaseListRequest):
     name: str | None = None
     course_id: int | None = None
     status: str | None = None
+
 
 # DTO Types for Assignment
 AssignmentCreateDTO = TBaseDTO[AssignmentCoreModel]
@@ -127,14 +139,17 @@ AssignmentListDTO = TBaseListDTO[List[AssignmentCoreModel]]
 AssignmentUpdateDTO = TBaseDTO[AssignmentCoreModel]
 AssignmentDeleteDTO = TBaseDTO[AssignmentCoreModel]
 
+
 # Request Types for Student
 class StudentCreateRequest(BaseModel):
     name: str
     email: str
     status: str = "active"
 
+
 class StudentGetRequest(BaseIdentifiedRequest):
     pass
+
 
 class StudentDeleteRequest(BaseIdentifiedRequest):
     pass
@@ -151,6 +166,7 @@ class StudentListRequest(BaseListRequest):
     email: str | None = None
     status: str | None = None
 
+
 # DTO Types for Student
 StudentCreateDTO = TBaseDTO[StudentCoreModel]
 StudentGetDTO = TBaseDTO[StudentCoreModel]
@@ -158,8 +174,18 @@ StudentListDTO = TBaseListDTO[List[StudentCoreModel]]
 StudentUpdateDTO = TBaseDTO[StudentCoreModel]
 StudentDeleteDTO = TBaseDTO[StudentCoreModel]
 
+
 # Repository Implementations
-class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel, ComplexCreateRequest, ComplexGetRequest, ComplexListRequest, ComplexUpdateRequest, ComplexDeleteRequest]):
+class ComplexRepository(
+    DefaultSqlaCrudRepository[
+        ComplexCoreModel,
+        ComplexCreateRequest,
+        ComplexGetRequest,
+        ComplexListRequest,
+        ComplexUpdateRequest,
+        ComplexDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -182,7 +208,16 @@ class ComplexRepository(DefaultSqlaCrudRepository[ComplexCoreModel, ComplexCreat
         return super().delete(request)
 
 
-class DepartmentRepository(DefaultSqlaCrudRepository[DepartmentCoreModel, DepartmentCreateRequest, DepartmentGetRequest, DepartmentListRequest, DepartmentUpdateRequest, DepartmentDeleteRequest]):
+class DepartmentRepository(
+    DefaultSqlaCrudRepository[
+        DepartmentCoreModel,
+        DepartmentCreateRequest,
+        DepartmentGetRequest,
+        DepartmentListRequest,
+        DepartmentUpdateRequest,
+        DepartmentDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -205,7 +240,16 @@ class DepartmentRepository(DefaultSqlaCrudRepository[DepartmentCoreModel, Depart
         return super().delete(request)
 
 
-class AssignmentRepository(DefaultSqlaCrudRepository[AssignmentCoreModel, AssignmentCreateRequest, AssignmentGetRequest, AssignmentListRequest, AssignmentUpdateRequest, AssignmentDeleteRequest]):
+class AssignmentRepository(
+    DefaultSqlaCrudRepository[
+        AssignmentCoreModel,
+        AssignmentCreateRequest,
+        AssignmentGetRequest,
+        AssignmentListRequest,
+        AssignmentUpdateRequest,
+        AssignmentDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -227,7 +271,17 @@ class AssignmentRepository(DefaultSqlaCrudRepository[AssignmentCoreModel, Assign
     def delete(self, request: AssignmentDeleteRequest) -> AssignmentDeleteDTO:
         return super().delete(request)
 
-class StudentRepository(DefaultSqlaCrudRepository[StudentCoreModel, StudentCreateRequest, StudentGetRequest, StudentListRequest, StudentUpdateRequest, StudentDeleteRequest]):
+
+class StudentRepository(
+    DefaultSqlaCrudRepository[
+        StudentCoreModel,
+        StudentCreateRequest,
+        StudentGetRequest,
+        StudentListRequest,
+        StudentUpdateRequest,
+        StudentDeleteRequest,
+    ]
+):
     @sqla_database_context()
     def __init__(self, database: Database | None = None) -> None:
         if database is None:
@@ -252,7 +306,13 @@ class StudentRepository(DefaultSqlaCrudRepository[StudentCoreModel, StudentCreat
 
 class ComplexTestSetup:
     @pytest.fixture(autouse=True)
-    def cleanup(self, repository: ComplexRepository, department_repository: DepartmentRepository, student_repository: StudentRepository, assignment_repository: AssignmentRepository) -> Generator[None, None, None]:
+    def cleanup(
+        self,
+        repository: ComplexRepository,
+        department_repository: DepartmentRepository,
+        student_repository: StudentRepository,
+        assignment_repository: AssignmentRepository,
+    ) -> Generator[None, None, None]:
         yield
         session = repository.session()
         session.execute(course_student_association.delete())

@@ -114,7 +114,7 @@ FuncT = TypeVar("FuncT", bound=Callable[..., Any])
 
 
 def sqla_database_context(
-        yaml_config_file: Optional[str] = None,
+    yaml_config_file: Optional[str] = None,
 ) -> Callable[[FuncT], FuncT]:
     """
     A decorator that provides a SQLAlchemy session to the decorated function.

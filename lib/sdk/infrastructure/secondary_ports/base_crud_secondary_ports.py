@@ -8,14 +8,16 @@ from lib.sdk.core.dto import TBaseDTO
 from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
 
 
-TCreateRequest = TypeVar('TCreateRequest', bound=BaseModel)
-TGetRequest = TypeVar('TGetRequest', bound=BaseIdentifiedRequest)
-TListRequest = TypeVar('TListRequest', bound=BaseListRequest)
-TUpdateRequest = TypeVar('TUpdateRequest', bound=BaseIdentifiedRequest)
-TDeleteRequest = TypeVar('TDeleteRequest', bound=BaseIdentifiedRequest)
+TCreateRequest = TypeVar("TCreateRequest", bound=BaseModel)
+TGetRequest = TypeVar("TGetRequest", bound=BaseIdentifiedRequest)
+TListRequest = TypeVar("TListRequest", bound=BaseListRequest)
+TUpdateRequest = TypeVar("TUpdateRequest", bound=BaseIdentifiedRequest)
+TDeleteRequest = TypeVar("TDeleteRequest", bound=BaseIdentifiedRequest)
 
 
-class BaseCrudOutputPort(BaseAbstractClass, Generic[TCreateRequest, TGetRequest, TListRequest, TUpdateRequest, TDeleteRequest]):
+class BaseCrudOutputPort(
+    BaseAbstractClass, Generic[TCreateRequest, TGetRequest, TListRequest, TUpdateRequest, TDeleteRequest]
+):
     def __init__(self) -> None:
         super().__init__()
 

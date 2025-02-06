@@ -13,8 +13,13 @@ from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveGetRequest,
     PrimitiveListRequest,
     PrimitiveUpdateRequest,
-    PrimitiveDeleteRequest, PrimitiveRepository, PrimitiveCreateDTO, PrimitiveGetDTO, PrimitiveListDTO,
-    PrimitiveUpdateDTO, PrimitiveDeleteDTO,
+    PrimitiveDeleteRequest,
+    PrimitiveRepository,
+    PrimitiveCreateDTO,
+    PrimitiveGetDTO,
+    PrimitiveListDTO,
+    PrimitiveUpdateDTO,
+    PrimitiveDeleteDTO,
 )
 from tests.repository.sqla_models import PrimitiveSqlaModel
 
@@ -98,10 +103,7 @@ class TestUpdatePrimitiveRepository(PrimitiveTestSetup):
         if isinstance(created, BaseError):
             raise Exception(created.message)
 
-        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(
-            id=created.data.id,
-            name="Updated"
-        )
+        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(id=created.data.id, name="Updated")
 
         result: PrimitiveUpdateDTO = repository.update(update_request)
 
@@ -109,10 +111,7 @@ class TestUpdatePrimitiveRepository(PrimitiveTestSetup):
         assert result.data.name == "Updated"
 
     def test_update_nonexistent(self, repository: PrimitiveRepository) -> None:
-        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(
-            id=999,
-            name="Updated"
-        )
+        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(id=999, name="Updated")
 
         result: PrimitiveUpdateDTO = repository.update(update_request)
 

@@ -68,8 +68,8 @@ def generate_digest() -> str:
     return hashlib.md5(f"{timestamp}{random_string}".encode()).hexdigest()[:8]
 
 
-P = ParamSpec('P')
-R = TypeVar('R')
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def exception_handler(digest: Optional[str] = None) -> Callable[[Callable[P, R]], Callable[P, Union[R, BaseError]]]:

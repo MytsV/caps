@@ -1,7 +1,11 @@
 from typing import Dict, Any, Optional
 
 from lib.sdk.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
-from lib.sdk.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler, mock_authenticate
+from lib.sdk.infrastructure.fastapi.fastapi_endpoint import (
+    BaseFastAPIEndpoint,
+    default_error_handler,
+    mock_authenticate,
+)
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -17,16 +21,17 @@ from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveUpdateDTO,
     PrimitiveUpdateRequest,
     PrimitiveDeleteDTO,
-    PrimitiveDeleteRequest, PrimitiveRepository,
+    PrimitiveDeleteRequest,
+    PrimitiveRepository,
 )
 
 
 class PrimitiveEndpoint(BaseFastAPIEndpoint):
     def __init__(
-            self,
-            descriptor: BaseEndpointDescriptor,
-            responses: Dict[int | str, dict[str, Any]],
-            repository: PrimitiveRepository,
+        self,
+        descriptor: BaseEndpointDescriptor,
+        responses: Dict[int | str, dict[str, Any]],
+        repository: PrimitiveRepository,
     ) -> None:
         super().__init__(descriptor, responses)
         self.prefix += "/repository"
@@ -63,8 +68,8 @@ class PrimitiveEndpoint(BaseFastAPIEndpoint):
         )
         @default_error_handler()
         async def list(
-                page: Optional[int] = None,
-                page_size: Optional[int] = None,
+            page: Optional[int] = None,
+            page_size: Optional[int] = None,
         ) -> PrimitiveListDTO:
             result = self._repository.list(
                 request=PrimitiveListRequest(
@@ -133,10 +138,10 @@ class TestPrimitiveBypassEndpoint(PrimitiveTestSetup):
 
     @pytest.fixture
     def endpoint(
-            self,
-            repository: PrimitiveRepository,
-            descriptor: BaseEndpointDescriptor,
-            responses: Dict[int | str, dict[str, Any]]
+        self,
+        repository: PrimitiveRepository,
+        descriptor: BaseEndpointDescriptor,
+        responses: Dict[int | str, dict[str, Any]],
     ) -> PrimitiveEndpoint:
         return PrimitiveEndpoint(repository=repository, descriptor=descriptor, responses=responses)
 

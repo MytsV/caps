@@ -31,10 +31,7 @@ class BaseCoreModel(BaseModel):
 class BaseCamelCaseModel(BaseModel):
     """Base model class that automatically converts snake_case to camelCase"""
 
-    model_config = ConfigDict(
-        alias_generator=camelize,
-        populate_by_name=True
-    )
+    model_config = ConfigDict(alias_generator=camelize, populate_by_name=True)
 
     def model_dump(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         d: Dict[str, Any] = super().model_dump(*args, **kwargs)
