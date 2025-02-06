@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from lib.sdk.infrastructure.fastapi.endpoint_descriptor import BaseEndpointDescriptor
 from lib.sdk.infrastructure.fastapi.fastapi_endpoint import BaseFastAPIEndpoint, default_error_handler, mock_authenticate
@@ -6,7 +6,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from lib.sdk.infrastructure.secondary_ports.base_crud_secondary_ports import BaseCrudOutputPort
 from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveTestSetup,
     PrimitiveCreateDTO,
@@ -18,20 +17,20 @@ from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveUpdateDTO,
     PrimitiveUpdateRequest,
     PrimitiveDeleteDTO,
-    PrimitiveDeleteRequest,
+    PrimitiveDeleteRequest, PrimitiveRepository,
 )
 
 
-class TestEndpoint(BaseFastAPIEndpoint):
+class PrimitiveEndpoint(BaseFastAPIEndpoint):
     def __init__(
-        self,
-        descriptor: BaseEndpointDescriptor,
-        responses: Dict[int | str, dict[str, Any]],
-        output_port: BaseCrudOutputPort,
+            self,
+            descriptor: BaseEndpointDescriptor,
+            responses: Dict[int | str, dict[str, Any]],
+            repository: PrimitiveRepository,
     ) -> None:
         super().__init__(descriptor, responses)
         self.prefix += "/repository"
-        self._output_port = output_port
+        self._repository = repository
 
     def authenticate(self, x_auth_token: str) -> None:
         mock_authenticate(x_auth_token)
@@ -43,8 +42,8 @@ class TestEndpoint(BaseFastAPIEndpoint):
             responses=self.responses,
         )
         @default_error_handler()
-        async def create(request: PrimitiveCreateRequest):
-            result = self._output_port.create(request=request)
+        async def create(request: PrimitiveCreateRequest) -> PrimitiveCreateDTO:
+            result = self._repository.create(request=request)
             return result
 
         @self.router.get(
@@ -53,8 +52,8 @@ class TestEndpoint(BaseFastAPIEndpoint):
             responses=self.responses,
         )
         @default_error_handler()
-        async def get(id: int):
-            result = self._output_port.get(request=PrimitiveGetRequest(id=id))
+        async def get(id: int) -> PrimitiveGetDTO:
+            result = self._repository.get(request=PrimitiveGetRequest(id=id))
             return result
 
         @self.router.get(
@@ -64,10 +63,10 @@ class TestEndpoint(BaseFastAPIEndpoint):
         )
         @default_error_handler()
         async def list(
-            page: int | None = None,
-            page_size: int | None = None,
-        ):
-            result = self._output_port.list(
+                page: Optional[int] = None,
+                page_size: Optional[int] = None,
+        ) -> PrimitiveListDTO:
+            result = self._repository.list(
                 request=PrimitiveListRequest(
                     page=page,
                     page_size=page_size,
@@ -81,8 +80,8 @@ class TestEndpoint(BaseFastAPIEndpoint):
             responses=self.responses,
         )
         @default_error_handler()
-        async def update(request: PrimitiveUpdateRequest):
-            result = self._output_port.update(request=request)
+        async def update(request: PrimitiveUpdateRequest) -> PrimitiveUpdateDTO:
+            result = self._repository.update(request=request)
             return result
 
         @self.router.delete(
@@ -91,26 +90,28 @@ class TestEndpoint(BaseFastAPIEndpoint):
             responses=self.responses,
         )
         @default_error_handler()
-        async def delete(id: int):
-            result = self._output_port.delete(
+        async def delete(id: int) -> PrimitiveDeleteDTO:
+            result = self._repository.delete(
                 request=PrimitiveDeleteRequest(id=id),
             )
             return result
 
 
-class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
+class TestPrimitiveBypassEndpoint(PrimitiveTestSetup):
     @pytest.fixture
-    def app(self):
+    def app(self) -> FastAPI:
         return FastAPI()
 
     @pytest.fixture
-    def test_client(self, app, endpoint):
+    def test_client(self, app: FastAPI, endpoint: PrimitiveEndpoint) -> TestClient:
         router = endpoint.load()
+        if router is None:
+            raise ValueError("Failed to load endpoint")
         app.include_router(router)
         return TestClient(app)
 
     @pytest.fixture
-    def descriptor(self):
+    def descriptor(self) -> BaseEndpointDescriptor:
         return BaseEndpointDescriptor(
             name="test-items",
             description="Test CRUD operations for items",
@@ -121,7 +122,7 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         )
 
     @pytest.fixture
-    def responses(self):
+    def responses(self) -> Dict[int | str, dict[str, Any]]:
         return {
             400: {"description": "Validation Error"},
             401: {"description": "Unauthorized"},
@@ -131,21 +132,26 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         }
 
     @pytest.fixture
-    def endpoint(self, repository, descriptor, responses):
-        return TestEndpoint(output_port=repository, descriptor=descriptor, responses=responses)
+    def endpoint(
+            self,
+            repository: PrimitiveRepository,
+            descriptor: BaseEndpointDescriptor,
+            responses: Dict[int | str, dict[str, Any]]
+    ) -> PrimitiveEndpoint:
+        return PrimitiveEndpoint(repository=repository, descriptor=descriptor, responses=responses)
 
     @pytest.fixture
-    def auth_headers(self):
+    def auth_headers(self) -> Dict[str, str]:
         return {"X-Auth-Token": "test123"}
 
-    def test_create_endpoint_success(self, test_client, auth_headers):
+    def test_create_endpoint_success(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         response = test_client.post("/api/v1/repository/test-items", json={"name": "New Item"}, headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["name"] == "New Item"
         assert isinstance(data["data"]["id"], int)
 
-    def test_get_endpoint_success(self, test_client, auth_headers):
+    def test_get_endpoint_success(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         create_response = test_client.post(
             "/api/v1/repository/test-items", json={"name": "Test Item"}, headers=auth_headers
         )
@@ -157,13 +163,13 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         assert data["data"]["name"] == "Test Item"
         assert data["data"]["id"] == created_id
 
-    def test_get_endpoint_not_found(self, test_client, auth_headers):
+    def test_get_endpoint_not_found(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         response = test_client.get("/api/v1/repository/test-items/999", headers=auth_headers)
         assert response.status_code == 404
         data = response.json()
-        assert data["errorType"] == "not_found_error"
+        assert data["errorType"] == "not_found"
 
-    def test_list_endpoint_success(self, test_client, auth_headers):
+    def test_list_endpoint_success(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         test_client.post("/api/v1/repository/test-items", json={"name": "Item 1"}, headers=auth_headers)
         test_client.post("/api/v1/repository/test-items", json={"name": "Item 2"}, headers=auth_headers)
 
@@ -172,9 +178,9 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         data = response.json()
         assert len(data["data"]) == 2
         names = {item["name"] for item in data["data"]}
-        assert names == {"Item 1", "Item 2"}  # Check names exist without caring about order
+        assert names == {"Item 1", "Item 2"}
 
-    def test_update_endpoint_success(self, test_client, auth_headers):
+    def test_update_endpoint_success(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         create_response = test_client.post(
             "/api/v1/repository/test-items", json={"name": "Original Item"}, headers=auth_headers
         )
@@ -189,7 +195,7 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         data = response.json()
         assert data["data"]["name"] == "Updated Item"
 
-    def test_delete_endpoint_success(self, test_client, auth_headers):
+    def test_delete_endpoint_success(self, test_client: TestClient, auth_headers: Dict[str, str]) -> None:
         create_response = test_client.post(
             "/api/v1/repository/test-items", json={"name": "To Delete"}, headers=auth_headers
         )
@@ -200,12 +206,12 @@ class PrimitiveTestFastAPICrudRepositoryEndpoint(PrimitiveTestSetup):
         data = response.json()
         assert data["data"]["id"] == created_id
 
-    def test_unauthorized_access(self, test_client):
+    def test_unauthorized_access(self, test_client: TestClient) -> None:
         response = test_client.get("/api/v1/repository/test-items", headers={})
         assert response.status_code == 401
         assert response.json()["detail"] == "Unauthorized"
 
-    def test_forbidden_access(self, test_client):
+    def test_forbidden_access(self, test_client: TestClient) -> None:
         response = test_client.get("/api/v1/repository/test-items", headers={"X-Auth-Token": "wrong_token"})
         assert response.status_code == 403
         assert response.json()["detail"] == "Forbidden"

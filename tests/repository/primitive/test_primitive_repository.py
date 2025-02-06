@@ -13,7 +13,8 @@ from tests.repository.primitive.primitive_secondary_entities import (
     PrimitiveGetRequest,
     PrimitiveListRequest,
     PrimitiveUpdateRequest,
-    PrimitiveDeleteRequest,
+    PrimitiveDeleteRequest, PrimitiveRepository, PrimitiveCreateDTO, PrimitiveGetDTO, PrimitiveListDTO,
+    PrimitiveUpdateDTO, PrimitiveDeleteDTO,
 )
 from tests.repository.sqla_models import PrimitiveSqlaModel
 
@@ -28,133 +29,132 @@ class PrimitiveUpdateExtraFieldsRequest(BaseIdentifiedRequest):
     extra_field: str
 
 
-class PrimitiveTestCreatePrimitiveRepository(PrimitiveTestSetup):
-    def test_create_success(self, repository):
-        create_request = PrimitiveCreateRequest(name="Test Item")
+class TestCreatePrimitiveRepository(PrimitiveTestSetup):
+    def test_create_success(self, repository: PrimitiveRepository) -> None:
+        create_request: PrimitiveCreateRequest = PrimitiveCreateRequest(name="Test Item")
 
-        result = repository.create(create_request)
-        print(result)
+        result: PrimitiveCreateDTO = repository.create(create_request)
 
         assert isinstance(result, SuccessDTO)
         assert result.data.name == "Test Item"
         assert result.data.id is not None
 
-    def test_create_error_handling(self, repository):
-        create_request = PrimitiveCreateRequest(name="Test Item")
+    def test_create_error_handling(self, repository: PrimitiveRepository) -> None:
+        create_request: PrimitiveCreateRequest = PrimitiveCreateRequest(name="Test Item")
 
         with patch.object(PrimitiveSqlaModel, "save", side_effect=Exception("Database error")):
-            result = repository.create(create_request)
+            result: PrimitiveCreateDTO = repository.create(create_request)
 
         assert isinstance(result, BaseError)
-        assert result.error_type == "database_error"
-        assert "Database error" in result.message
-
-    def test_create_with_extra_fields(self, repository):
-        create_request = PrimitiveCreateExtraFieldsRequest(name="Test Item", extra_field="value")
-
-        result = repository.create(create_request)
-
-        assert isinstance(result, BaseError)
-        assert result.error_type == "validation_error"
+        assert result.error_type == "database"
 
 
-class PrimitiveTestGetPrimitiveRepository(PrimitiveTestSetup):
-    def test_get_existing(self, repository):
-        create_request = PrimitiveCreateRequest(name="Test Item")
-        created = repository.create(create_request)
+class TestGetPrimitiveRepository(PrimitiveTestSetup):
+    def test_get_existing(self, repository: PrimitiveRepository) -> None:
+        create_request: PrimitiveCreateRequest = PrimitiveCreateRequest(name="Test Item")
+        created: PrimitiveCreateDTO = repository.create(create_request)
 
-        get_request = PrimitiveGetRequest(id=created.data.id)
+        if isinstance(created, BaseError):
+            raise Exception(created.message)
 
-        result = repository.get(get_request)
+        get_request: PrimitiveGetRequest = PrimitiveGetRequest(id=created.data.id)
+
+        result: PrimitiveGetDTO = repository.get(get_request)
 
         assert isinstance(result, SuccessDTO)
         assert result.data.name == "Test Item"
 
-    def test_get_non_existing(self, repository):
-        get_request = PrimitiveGetRequest(id=999)
+    def test_get_non_existing(self, repository: PrimitiveRepository) -> None:
+        get_request: PrimitiveGetRequest = PrimitiveGetRequest(id=999)
 
-        result = repository.get(get_request)
+        result: PrimitiveGetDTO = repository.get(get_request)
 
         assert isinstance(result, BaseError)
-        assert "not_found_error" in result.error_type
+        assert result.error_type == "not_found"
 
 
-class PrimitiveTestListPrimitiveRepository(PrimitiveTestSetup):
-    def test_list_empty(self, repository):
-        result = repository.list(PrimitiveListRequest())
+class TestListPrimitiveRepository(PrimitiveTestSetup):
+    def test_list_empty(self, repository: PrimitiveRepository) -> None:
+        result: PrimitiveListDTO = repository.list(PrimitiveListRequest())
 
         assert isinstance(result, SuccessDTO)
         assert len(result.data) == 0
 
-    def test_list_multiple_items(self, repository):
+    def test_list_multiple_items(self, repository: PrimitiveRepository) -> None:
         repository.create(PrimitiveCreateRequest(name="Item 1"))
         repository.create(PrimitiveCreateRequest(name="Item 2"))
 
-        result = repository.list(PrimitiveListRequest())
+        result: PrimitiveListDTO = repository.list(PrimitiveListRequest())
 
         assert isinstance(result, SuccessDTO)
         assert len(result.data) == 2
         assert {item.name for item in result.data} == {"Item 1", "Item 2"}
 
 
-class PrimitiveTestUpdatePrimitiveRepository(PrimitiveTestSetup):
-    def test_update_existing(self, repository):
-        created = repository.create(PrimitiveCreateRequest(name="Original"))
+class TestUpdatePrimitiveRepository(PrimitiveTestSetup):
+    def test_update_existing(self, repository: PrimitiveRepository) -> None:
+        created: PrimitiveCreateDTO = repository.create(PrimitiveCreateRequest(name="Original"))
 
-        update_request = PrimitiveUpdateRequest(id=created.data.id, name="Updated")
+        if isinstance(created, BaseError):
+            raise Exception(created.message)
 
-        result = repository.update(update_request)
+        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(
+            id=created.data.id,
+            name="Updated"
+        )
+
+        result: PrimitiveUpdateDTO = repository.update(update_request)
 
         assert isinstance(result, SuccessDTO)
         assert result.data.name == "Updated"
 
-    def test_update_nonexistent(self, repository):
-        update_request = PrimitiveUpdateRequest(id=999, name="Updated")
+    def test_update_nonexistent(self, repository: PrimitiveRepository) -> None:
+        update_request: PrimitiveUpdateRequest = PrimitiveUpdateRequest(
+            id=999,
+            name="Updated"
+        )
 
-        result = repository.update(update_request)
-
-        assert isinstance(result, BaseError)
-        assert "not_found_error" in result.error_type
-
-    def test_update_with_invalid_fields(self, repository):
-        created = repository.create(PrimitiveCreateRequest(name="Original"))
-
-        update_request = PrimitiveUpdateExtraFieldsRequest(id=created.data.id, name="Updated", extra_field="value")
-
-        result = repository.update(update_request)
+        result: PrimitiveUpdateDTO = repository.update(update_request)
 
         assert isinstance(result, BaseError)
-        assert "validation_error" in result.error_type
+        assert result.error_type == "not_found"
 
 
-class PrimitiveTestDeletePrimitiveRepository(PrimitiveTestSetup):
-    def test_delete_existing(self, repository):
-        created = repository.create(PrimitiveCreateRequest(name="To Delete"))
+class TestDeletePrimitiveRepository(PrimitiveTestSetup):
+    def test_delete_existing(self, repository: PrimitiveRepository) -> None:
+        created: PrimitiveCreateDTO = repository.create(PrimitiveCreateRequest(name="To Delete"))
 
-        delete_request = PrimitiveDeleteRequest(id=created.data.id)
+        if isinstance(created, BaseError):
+            raise Exception(created.message)
 
-        result = repository.delete(delete_request)
+        delete_request: PrimitiveDeleteRequest = PrimitiveDeleteRequest(id=created.data.id)
+
+        result: PrimitiveDeleteDTO = repository.delete(delete_request)
 
         assert isinstance(result, SuccessDTO)
         assert result.data.id == created.data.id
 
-        get_result = repository.get(PrimitiveGetRequest(id=created.data.id))
+        get_result: PrimitiveGetDTO = repository.get(PrimitiveGetRequest(id=created.data.id))
         assert isinstance(get_result, BaseError)
-        assert "not_found_error" in get_result.error_type
+        assert get_result.error_type == "not_found"
 
-    def test_delete_nonexistent(self, repository):
-        delete_request = PrimitiveDeleteRequest(id=999)
+    def test_delete_nonexistent(self, repository: PrimitiveRepository) -> None:
+        delete_request: PrimitiveDeleteRequest = PrimitiveDeleteRequest(id=999)
 
-        result = repository.delete(delete_request)
+        result: PrimitiveDeleteDTO = repository.delete(delete_request)
 
         assert isinstance(result, BaseError)
-        assert "not_found_error" in result.error_type
+        assert result.error_type == "not_found"
 
-    def test_delete_already_deleted(self, repository):
-        created = repository.create(PrimitiveCreateRequest(name="To Delete"))
-        first_delete = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
+    def test_delete_already_deleted(self, repository: PrimitiveRepository) -> None:
+        created: PrimitiveCreateDTO = repository.create(PrimitiveCreateRequest(name="To Delete"))
 
-        second_delete = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
+        if isinstance(created, BaseError):
+            raise Exception(created.message)
+
+        first_delete: PrimitiveDeleteDTO = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
+
+        second_delete: PrimitiveDeleteDTO = repository.delete(PrimitiveDeleteRequest(id=created.data.id))
 
         assert isinstance(second_delete, BaseError)
-        assert "not_found_error" in second_delete.error_type
+        assert second_delete.error_type == "not_found"

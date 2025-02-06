@@ -1,14 +1,16 @@
-from typing import List
+from typing import List, Generator
 
 from pydantic import BaseModel
 
+from lib.sdk.core.error import BaseError
 from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
+from lib.sdk.infrastructure.repository.sqla.database import Database
 
 from lib.sdk.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository
 from lib.sdk.core.dto import TBaseDTO, TBaseListDTO
 from sqlalchemy.orm import Session
 
-from lib.sdk.infrastructure.repository.sqla.utils import sqla_session_context
+from lib.sdk.infrastructure.repository.sqla.utils import sqla_database_context
 import pytest
 
 from tests.repository.models import ComposedCoreModel, CategoryCoreModel
@@ -48,33 +50,27 @@ class ComposedListRequest(BaseListRequest):
     status: str | None = None
 
 
-class ComposedRepository(DefaultSqlaCrudRepository[ComposedCoreModel]):
-    def __init__(self) -> None:
-        super().__init__(sqla_model=ComposedSqlaModel)
+class ComposedRepository(DefaultSqlaCrudRepository[ComposedCoreModel, ComposedCreateRequest, ComposedGetRequest, ComposedListRequest, ComposedUpdateRequest, ComposedDeleteRequest]):
+    @sqla_database_context()
+    def __init__(self, database: Database | None = None) -> None:
+        if database is None:
+            raise ValueError("Database has not been injected")
+        super().__init__(sqla_model=ComposedSqlaModel, database=database)
 
-    @sqla_session_context()
-    def session(self, session: Session) -> Session:
-        return session
+    def create(self, request: ComposedCreateRequest) -> ComposedCreateDTO:
+        return super().create(request)
 
-    @sqla_session_context()
-    def create(self, session: Session, request: ComposedCreateRequest) -> ComposedCreateDTO:
-        return super().create(session, request)
+    def get(self, request: ComposedGetRequest) -> ComposedGetDTO:
+        return super().get(request)
 
-    @sqla_session_context()
-    def get(self, session: Session, request: ComposedGetRequest) -> ComposedGetDTO:
-        return super().get(session, request)
+    def list(self, request: ComposedListRequest) -> ComposedListDTO:
+        return super().list(request)
 
-    @sqla_session_context()
-    def list(self, session: Session, request: ComposedListRequest) -> ComposedListDTO:
-        return super().list(session, request)
+    def update(self, request: ComposedUpdateRequest) -> ComposedUpdateDTO:
+        return super().update(request)
 
-    @sqla_session_context()
-    def update(self, session: Session, request: ComposedUpdateRequest) -> ComposedUpdateDTO:
-        return super().update(session, request)
-
-    @sqla_session_context()
-    def delete(self, session: Session, request: ComposedDeleteRequest) -> ComposedDeleteDTO:
-        return super().delete(session, request)
+    def delete(self, request: ComposedDeleteRequest) -> ComposedDeleteDTO:
+        return super().delete(request)
 
 
 class CategoryCreateRequest(BaseModel):
@@ -82,22 +78,49 @@ class CategoryCreateRequest(BaseModel):
     description: str | None = None
 
 
-class CategoryRepository(DefaultSqlaCrudRepository[CategoryCoreModel]):
-    def __init__(self) -> None:
-        super().__init__(sqla_model=CategorySqlaModel)
+class CategoryGetRequest(BaseIdentifiedRequest):
+    pass
 
-    @sqla_session_context()
-    def session(self, session: Session) -> Session:
-        return session
 
-    @sqla_session_context()
-    def create(self, session: Session, request: CategoryCreateRequest) -> TBaseDTO[CategoryCoreModel]:
-        return super().create(session, request)
+class CategoryDeleteRequest(BaseIdentifiedRequest):
+    pass
+
+
+class CategoryUpdateRequest(BaseIdentifiedRequest):
+    title: str | None = None
+    description: str | None = None
+
+
+class CategoryListRequest(BaseListRequest):
+    pass
+
+
+class CategoryRepository(DefaultSqlaCrudRepository[CategoryCoreModel, CategoryCreateRequest, CategoryGetRequest, CategoryListRequest, CategoryUpdateRequest, CategoryDeleteRequest]):
+    @sqla_database_context()
+    def __init__(self, database: Database | None = None) -> None:
+        if database is None:
+            raise ValueError("Database has not been injected")
+        super().__init__(sqla_model=CategorySqlaModel, database=database)
+
+    def create(self, request: CategoryCreateRequest) -> TBaseDTO[CategoryCoreModel]:
+        return super().create(request)
+
+    def get(self, request: CategoryGetRequest) -> TBaseDTO[CategoryCoreModel]:
+        return super().get(request)
+
+    def list(self, request: CategoryListRequest) -> TBaseListDTO[List[CategoryCoreModel]]:
+        return super().list(request)
+
+    def update(self, request: CategoryUpdateRequest) -> TBaseDTO[CategoryCoreModel]:
+        return super().update(request)
+
+    def delete(self, request: CategoryDeleteRequest) -> TBaseDTO[CategoryCoreModel]:
+        return super().delete(request)
 
 
 class ComposedTestSetup:
     @pytest.fixture(autouse=True)
-    def cleanup(self, repository, category_repository):
+    def cleanup(self, repository: ComposedRepository, category_repository: CategoryRepository) -> Generator[None, None, None]:
         yield
         session = repository.session()
         session.query(ComposedSqlaModel).delete()
@@ -105,15 +128,17 @@ class ComposedTestSetup:
         session.commit()
 
     @pytest.fixture(scope="class")
-    def repository(self):
+    def repository(self) -> ComposedRepository:
         return ComposedRepository()
 
     @pytest.fixture(scope="class")
-    def category_repository(self):
+    def category_repository(self) -> CategoryRepository:
         return CategoryRepository()
 
     @pytest.fixture
-    def category(self, category_repository):
+    def category(self, category_repository: CategoryRepository) -> CategoryCoreModel:
         request = CategoryCreateRequest(title="Test Category")
         result = category_repository.create(request)
+        if isinstance(result, BaseError):
+            raise ValueError(result.message)
         return result.data

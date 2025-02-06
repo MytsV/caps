@@ -1,14 +1,15 @@
-from typing import List
+from typing import List, Generator
 
 from pydantic import BaseModel
 
 from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
+from lib.sdk.infrastructure.repository.sqla.database import Database
 
 from lib.sdk.infrastructure.repository.sqla.default_sqla_crud_repository import DefaultSqlaCrudRepository
 from lib.sdk.core.dto import TBaseDTO, TBaseListDTO
 from sqlalchemy.orm import Session
 
-from lib.sdk.infrastructure.repository.sqla.utils import sqla_session_context
+from lib.sdk.infrastructure.repository.sqla.utils import sqla_database_context
 from tests.repository.models import PrimitiveCoreModel
 from tests.repository.sqla_models import PrimitiveSqlaModel
 
@@ -41,43 +42,44 @@ class PrimitiveListRequest(BaseListRequest):
     pass
 
 
-class PrimitiveRepository(DefaultSqlaCrudRepository[PrimitiveCoreModel]):
-    def __init__(self) -> None:
-        super().__init__(sqla_model=PrimitiveSqlaModel)
+class PrimitiveRepository(DefaultSqlaCrudRepository[
+                              PrimitiveCoreModel,
+                              PrimitiveCreateRequest,
+                              PrimitiveGetRequest,
+                              PrimitiveListRequest,
+                              PrimitiveUpdateRequest,
+                              PrimitiveDeleteRequest
+                          ]):
+    @sqla_database_context()
+    def __init__(self, database: Database | None = None) -> None:
+        if database is None:
+            raise ValueError("Database has not been injected")
+        super().__init__(sqla_model=PrimitiveSqlaModel, database=database)
 
-    @sqla_session_context()
-    def session(self, session: Session) -> Session:
-        return session
+    def create(self, request: PrimitiveCreateRequest) -> PrimitiveCreateDTO:
+        return super().create(request)
 
-    @sqla_session_context()
-    def create(self, session: Session, request: PrimitiveCreateRequest) -> PrimitiveCreateDTO:
-        return super().create(session, request)
+    def get(self, request: PrimitiveGetRequest) -> PrimitiveGetDTO:
+        return super().get(request)
 
-    @sqla_session_context()
-    def get(self, session: Session, request: PrimitiveGetRequest) -> PrimitiveGetDTO:
-        return super().get(session, request)
+    def list(self, request: PrimitiveListRequest) -> PrimitiveListDTO:
+        return super().list(request)
 
-    @sqla_session_context()
-    def list(self, session: Session, request: PrimitiveListRequest) -> PrimitiveListDTO:
-        return super().list(session, request)
+    def update(self, request: PrimitiveUpdateRequest) -> PrimitiveUpdateDTO:
+        return super().update(request)
 
-    @sqla_session_context()
-    def update(self, session: Session, request: PrimitiveUpdateRequest) -> PrimitiveUpdateDTO:
-        return super().update(session, request)
-
-    @sqla_session_context()
-    def delete(self, session: Session, request: PrimitiveDeleteRequest) -> PrimitiveDeleteDTO:
-        return super().delete(session, request)
+    def delete(self, request: PrimitiveDeleteRequest) -> PrimitiveDeleteDTO:
+        return super().delete(request)
 
 
 class PrimitiveTestSetup:
     @pytest.fixture(autouse=True)
-    def cleanup(self, repository):
+    def cleanup(self, repository: PrimitiveRepository) -> Generator[None, None, None]:
         yield
         session = repository.session()
         session.query(PrimitiveSqlaModel).delete()
         session.commit()
 
     @pytest.fixture(scope="class")
-    def repository(self):
+    def repository(self) -> PrimitiveRepository:
         return PrimitiveRepository()

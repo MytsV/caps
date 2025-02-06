@@ -2,12 +2,15 @@ from contextlib import _GeneratorContextManager, contextmanager
 from typing import Any, Callable, Generator
 
 from sqlalchemy import create_engine, orm, Engine
-from sqlalchemy.orm import Session, declarative_base, scoped_session
+from sqlalchemy.orm import Session, DeclarativeBase, scoped_session
 from sqlalchemy.sql import text
 from sqlalchemy_utils.functions import database_exists, create_database
 import logging
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 TDatabaseFactory = Callable[[], _GeneratorContextManager[Session]]
 

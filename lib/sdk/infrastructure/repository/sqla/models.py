@@ -11,19 +11,21 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import mapped_column, object_mapper, MappedColumn
 from sqlalchemy.orm.session import Session
 
-from lib.sdk.core.models import TBaseCoreModel
+from lib.sdk.core.models import BaseCoreModel
 from lib.sdk.infrastructure.repository.sqla.database import Base
 
 
-class SqlaModelBase(object):
+class SqlaModelBase(Base):
     """
     Base class for all SQLA models.
     """
 
     __table_initialized__ = False
+    __tablename__: str
+    __abstract__ = True
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict[str, Any]) -> "SqlaModelBase":
         instance = cls()
         for key, value in data.items():
             if hasattr(instance, key):
@@ -33,11 +35,11 @@ class SqlaModelBase(object):
         return instance
 
     @abstractmethod
-    def to_core_model(self) -> TBaseCoreModel:
+    def to_core_model(self) -> BaseCoreModel:
         raise NotImplementedError("You must implement the to_sdk_model method in your model")
 
     @declared_attr  # type: ignore
-    def __table_args__(cls: Base) -> tuple:  # type: ignore # pylint: disable=no-self-argument
+    def __table_args__(cls) -> tuple:  # type: ignore # pylint: disable=no-self-argument
         # pylint: disable=maybe-no-member
         return (
             CheckConstraint("CREATED_AT IS NOT NULL", name=cls.__tablename__.upper() + "_CREATED_NN"),
@@ -122,9 +124,10 @@ class SoftSqlaModelBase(SqlaModelBase):
     """
 
     __table_initialized__ = False
+    __abstract__ = True
 
     @declared_attr  # type: ignore
-    def __table_args__(cls: Base) -> tuple:  # type: ignore
+    def __table_args__(cls) -> tuple:  # type: ignore
         # pylint: disable=no-self-argument
         # pylint: disable=maybe-no-member
         return (
@@ -135,11 +138,11 @@ class SoftSqlaModelBase(SqlaModelBase):
         )
 
     @declared_attr
-    def deleted(cls: Base) -> MappedColumn[Any]:  # pylint: disable=no-self-argument
+    def deleted(cls) -> MappedColumn[Any]:  # pylint: disable=no-self-argument
         return mapped_column("deleted", Boolean, default=False)
 
     @declared_attr
-    def deleted_at(cls: Base) -> MappedColumn[Any]:  # pylint: disable=no-self-argument
+    def deleted_at(cls) -> MappedColumn[Any]:  # pylint: disable=no-self-argument
         return mapped_column("deleted_at", DateTime, nullable=True)
 
     def delete(self, flush: bool = True, session: Session | None = None) -> None:

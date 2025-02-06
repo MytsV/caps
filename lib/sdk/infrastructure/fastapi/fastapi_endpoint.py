@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any, Dict, Optional, TypeVar, cast
 from fastapi import APIRouter, Depends, HTTPException, Header, status, Body, HTTPException, Response
 import logging
 from functools import wraps
@@ -81,17 +81,20 @@ class BaseFastAPIEndpoint(ABC):
         raise NotImplementedError("You must implement concrete authentication logic.")
 
 
-def mock_authenticate(x_auth_token: str):
+def mock_authenticate(x_auth_token: str) -> None:
     if x_auth_token == "test123":
         return
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
-def default_error_handler():
-    def decorator(func: Callable) -> Callable:
+FuncT = TypeVar("FuncT", bound=Callable[..., Any])
+
+
+def default_error_handler() -> Callable[[FuncT], FuncT]:
+    def decorator(func: FuncT) -> FuncT:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             response = await func(*args, **kwargs)
 
             if isinstance(response, BaseError):
@@ -111,6 +114,6 @@ def default_error_handler():
 
             return response
 
-        return wrapper
+        return cast(FuncT, wrapper)
 
     return decorator

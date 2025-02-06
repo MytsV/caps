@@ -9,11 +9,11 @@ Have in mind that not all tests use the --strict flag
 from abc import abstractmethod
 import sys
 from typing import Generic, TypeVar
-from lib.core.bac import BaseAbstractClass
-from lib.core.primary_ports import BaseInputPort, BaseOutputPort
-from lib.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
+from lib.sdk.core.bac import BaseAbstractClass
+from lib.sdk.core.primary_ports import BaseInputPort, BaseOutputPort
+from lib.sdk.core.usecase_models import BaseErrorResponseModel, BaseRequestModel, BaseResponseModel
 
-from lib.core.view_model import BaseViewModel
+from lib.sdk.core.view_model import BaseViewModel
 from tests.types.mypytest_prototype import debug_mypy, object_mypy_error_report
 
 

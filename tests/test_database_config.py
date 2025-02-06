@@ -1,5 +1,7 @@
 import os
 import tempfile
+from typing import Dict, Optional, Generator
+
 from yaml import dump
 
 import pytest
@@ -9,15 +11,15 @@ from lib.sdk.infrastructure.repository.sqla.utils import get_database_config
 
 class TestGetDatabaseConfig:
     @pytest.fixture
-    def temp_config_file(self):
+    def temp_config_file(self) -> Generator[str, None, None]:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yield f.name
         # Cleanup after test
         os.unlink(f.name)
 
     @pytest.fixture(autouse=True)
-    def setup(self):
-        self.original_env = {
+    def setup(self) -> Generator[None, None, None]:
+        self.original_env: Dict[str, Optional[str]] = {
             key: os.getenv(key)
             for key in ["CONFIG_PATH", "RDBMS_HOST", "RDBMS_PORT", "RDBMS_DB", "RDBMS_USER", "RDBMS_PASSWORD"]
         }
@@ -28,8 +30,8 @@ class TestGetDatabaseConfig:
             else:
                 os.environ[key] = value
 
-    def test_constant_config(self, temp_config_file):
-        config = {
+    def test_constant_config(self, temp_config_file: str) -> None:
+        config: Dict[str, Dict[str, str]] = {
             "rdbms": {
                 "engine": "postgresql",
                 "host": "localhost",
@@ -51,7 +53,7 @@ class TestGetDatabaseConfig:
         assert result.db_user == "test_user"
         assert result.db_password == "test_password"
 
-    def test_env_config(self, temp_config_file):
+    def test_env_config(self, temp_config_file: str) -> None:
         os.environ.update(
             {
                 "RDBMS_ENGINE": "postgresql",
@@ -63,7 +65,7 @@ class TestGetDatabaseConfig:
             }
         )
 
-        config = {
+        config: Dict[str, Dict[str, str]] = {
             "rdbms": {
                 "engine": "${RDBMS_ENGINE}",
                 "host": "${RDBMS_HOST}",
@@ -85,10 +87,10 @@ class TestGetDatabaseConfig:
         assert result.db_user == "env_user"
         assert result.db_password == "env_pass"
 
-    def test_mixed_config(self, temp_config_file):
+    def test_mixed_config(self, temp_config_file: str) -> None:
         os.environ["RDBMS_PASSWORD"] = "env_pass"
 
-        config = {
+        config: Dict[str, Dict[str, str]] = {
             "rdbms": {
                 "engine": "postgresql",
                 "host": "${RDBMS_HOST:localhost}",
@@ -110,11 +112,12 @@ class TestGetDatabaseConfig:
         assert result.db_user == "test_user"
         assert result.db_password == "env_pass"
 
-    def test_missing_required_key(self, temp_config_file):
-        config = {"rdbms": {"host": "localhost", "database": "test_db"}}
+    def test_missing_required_key(self, temp_config_file: str) -> None:
+        config: Dict[str, Dict[str, str]] = {"rdbms": {"host": "localhost", "database": "test_db"}}
         with open(temp_config_file, "w") as f:
             dump(config, f)
 
         with pytest.raises(KeyError) as exc_info:
             get_database_config(temp_config_file)
         assert "required" in str(exc_info.value)
+

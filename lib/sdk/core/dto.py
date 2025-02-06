@@ -1,10 +1,10 @@
 from typing import Literal, TypeVar
 
-from lib.sdk.core.models import BaseCoreModel
+from lib.sdk.core.models import BaseCamelCaseModel
 from lib.sdk.core.error import BaseError
 
 
-class SuccessDTO[T](BaseCoreModel):
+class SuccessDTO[T](BaseCamelCaseModel):
     """
     A success DTO class for the project.
 

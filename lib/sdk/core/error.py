@@ -3,9 +3,9 @@ import random
 import time
 from enum import Enum
 from functools import wraps
-from typing import Callable, Literal
+from typing import Callable, Literal, Dict, Any, Union, ParamSpec, TypeVar, Optional
 
-from lib.sdk.core.models import BaseCoreModel
+from lib.sdk.core.models import BaseCoreModel, BaseCamelCaseModel
 
 
 class ErrorType(str, Enum):
@@ -15,7 +15,7 @@ class ErrorType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class BaseError(BaseCoreModel):
+class BaseError(BaseCamelCaseModel):
     """
     An error class for the project, to represent 'soft' errors and expected exceptions.
 
@@ -62,22 +62,26 @@ class DatabaseError(Exception):
         self.message = message
 
 
-def generate_digest():
+def generate_digest() -> str:
     timestamp = str(time.time())
     random_string = str(random.randint(0, 1000000))
     return hashlib.md5(f"{timestamp}{random_string}".encode()).hexdigest()[:8]
 
 
-def exception_handler(digest: str | None = None):
-    def decorator(func: Callable):
+P = ParamSpec('P')
+R = TypeVar('R')
+
+
+def exception_handler(digest: Optional[str] = None) -> Callable[[Callable[P, R]], Callable[P, Union[R, BaseError]]]:
+    def decorator(func: Callable[P, R]) -> Callable[P, Union[R, BaseError]]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> Union[R, BaseError]:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                error_type = getattr(e, "error_type", ErrorType.UNKNOWN)
-                message = getattr(e, "message", str(e))
-                context = getattr(e, "context", {})
+                error_type: ErrorType = getattr(e, "error_type", ErrorType.UNKNOWN)
+                message: str = getattr(e, "message", str(e))
+                context: Dict[str, Any] = getattr(e, "context", {})
 
                 return BaseError(
                     name=type(e).__name__,

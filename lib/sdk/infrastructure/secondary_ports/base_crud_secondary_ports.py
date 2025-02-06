@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Any
 
 from pydantic import BaseModel
 
@@ -7,31 +7,36 @@ from lib.sdk.core.bac import BaseAbstractClass
 from lib.sdk.core.dto import TBaseDTO
 from lib.sdk.core.request import BaseIdentifiedRequest, BaseListRequest
 
-TSession = TypeVar("TSession")
+
+TCreateRequest = TypeVar('TCreateRequest', bound=BaseModel)
+TGetRequest = TypeVar('TGetRequest', bound=BaseIdentifiedRequest)
+TListRequest = TypeVar('TListRequest', bound=BaseListRequest)
+TUpdateRequest = TypeVar('TUpdateRequest', bound=BaseIdentifiedRequest)
+TDeleteRequest = TypeVar('TDeleteRequest', bound=BaseIdentifiedRequest)
 
 
-class BaseCrudOutputPort(BaseAbstractClass, Generic[TSession]):
+class BaseCrudOutputPort(BaseAbstractClass, Generic[TCreateRequest, TGetRequest, TListRequest, TUpdateRequest, TDeleteRequest]):
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def create(self, session: TSession, request: BaseModel) -> TBaseDTO:
+    def create(self, request: TCreateRequest) -> TBaseDTO[Any]:
         raise NotImplementedError("You must implement the create method. It should create a new record.")
 
     @abstractmethod
-    def get(self, session: TSession, request: BaseIdentifiedRequest) -> TBaseDTO:
+    def get(self, request: TGetRequest) -> TBaseDTO[Any]:
         raise NotImplementedError("You must implement the get method. It should read a single record.")
 
     @abstractmethod
-    def list(self, session: TSession, request: BaseListRequest) -> TBaseDTO:
+    def list(self, request: TListRequest) -> TBaseDTO[Any]:
         raise NotImplementedError(
             "You must implement the list method in your repository. Should 'read' multiple records."
         )
 
     @abstractmethod
-    def update(self, session: TSession, request: BaseIdentifiedRequest) -> TBaseDTO:
+    def update(self, request: TUpdateRequest) -> TBaseDTO[Any]:
         raise NotImplementedError("You must implement the update method in your repository")
 
     @abstractmethod
-    def delete(self, session: TSession, request: BaseIdentifiedRequest) -> TBaseDTO:
+    def delete(self, request: TDeleteRequest) -> TBaseDTO[Any]:
         raise NotImplementedError("You must implement the delete method in your repository")

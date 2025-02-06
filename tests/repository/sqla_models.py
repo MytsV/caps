@@ -14,7 +14,7 @@ from tests.repository.models import (
 )
 
 
-class PrimitiveSqlaModel(Base, SoftSqlaModelBase):
+class PrimitiveSqlaModel(SoftSqlaModelBase):
     __tablename__ = "primitive_items"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -23,7 +23,7 @@ class PrimitiveSqlaModel(Base, SoftSqlaModelBase):
         return PrimitiveCoreModel(id=self.id, name=self.name)
 
 
-class CategorySqlaModel(Base, SoftSqlaModelBase):
+class CategorySqlaModel(SoftSqlaModelBase):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True)
     title = Column(String)
@@ -33,7 +33,7 @@ class CategorySqlaModel(Base, SoftSqlaModelBase):
         return CategoryCoreModel(id=self.id, title=self.title, description=self.description)
 
 
-class ComposedSqlaModel(Base, SoftSqlaModelBase):
+class ComposedSqlaModel(SoftSqlaModelBase):
     __tablename__ = "complex_items"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -62,7 +62,7 @@ course_student_association = Table(
 )
 
 
-class SyllabusSqlaModel(Base, SoftSqlaModelBase):
+class SyllabusSqlaModel(SoftSqlaModelBase):
     __tablename__ = "syllabuses"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -74,7 +74,7 @@ class SyllabusSqlaModel(Base, SoftSqlaModelBase):
         return SyllabusCoreModel(id=self.id, name=self.name, content=self.content)
 
 
-class DepartmentSqlaModel(Base, SoftSqlaModelBase):
+class DepartmentSqlaModel(SoftSqlaModelBase):
     __tablename__ = "departments"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -85,7 +85,7 @@ class DepartmentSqlaModel(Base, SoftSqlaModelBase):
         return DepartmentCoreModel(id=self.id, name=self.name, code=self.code)
 
 
-class AssignmentSqlaModel(Base, SoftSqlaModelBase):
+class AssignmentSqlaModel(SoftSqlaModelBase):
     __tablename__ = "assignments"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -98,7 +98,7 @@ class AssignmentSqlaModel(Base, SoftSqlaModelBase):
         return AssignmentCoreModel(id=self.id, name=self.name, description=self.description, due_date=self.due_date)
 
 
-class StudentSqlaModel(Base, SoftSqlaModelBase):
+class StudentSqlaModel(SoftSqlaModelBase):
     __tablename__ = "students"
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -109,7 +109,7 @@ class StudentSqlaModel(Base, SoftSqlaModelBase):
         return StudentCoreModel(id=self.id, name=self.name, email=self.email)
 
 
-class ComplexSqlaModel(Base, SoftSqlaModelBase):
+class ComplexSqlaModel(SoftSqlaModelBase):
     __tablename__ = "courses"
     id = Column(Integer, primary_key=True)
     name = Column(String)
