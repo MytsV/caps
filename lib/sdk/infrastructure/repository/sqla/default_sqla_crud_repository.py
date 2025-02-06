@@ -104,11 +104,11 @@ class DefaultSqlaCrudRepository(
 
             try:
                 instance = self._sqla_model.from_dict(entity_data)
-                instance.save(session=session)
 
                 if relationship_data:
                     handle_relationships(instance, relationship_data, session)
 
+                instance.save(session=session)
                 session.commit()
                 return SuccessDTO(data=instance.to_core_model())
 
@@ -202,6 +202,7 @@ class DefaultSqlaCrudRepository(
                 if relationship_data:
                     handle_relationships(instance, relationship_data, session)
 
+                instance.save(session=session)
                 session.commit()
                 return SuccessDTO(data=instance.to_core_model())
             except Exception as e:
