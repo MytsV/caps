@@ -60,7 +60,7 @@ def resolve_config_path(yaml_config_file: Optional[str] = None) -> str:
         raise FileNotFoundError(
             f"Config file not found. Tried:\n"
             f"- Passed argument: None\n"
-            f"- Environment variable THIS_PROJECT_CONFIG_PATH: {env_config_path}\n"
+            f"- Environment variable CONFIG_PATH: {env_config_path}\n"
             f"- Default path: {default_path} (in {os.getcwd()})"
         )
 
@@ -131,7 +131,7 @@ def sqla_database_context(
 
     Example:
     ```python
-        @sexy_decorator_pipipi()
+        @sqla_database_context()
         def my_function(self, session: Session, arg1, arg2):
             # Function implementation that uses the session
     ```
